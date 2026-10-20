@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>校園尋寶護照</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Noto+Sans+TC:wght@400;700;900&display=swap">
+<style>
+/* Layout: a passport. Cover screen → visa page with six stamp slots → one station per screen. Stamps are the reward. */
+:root{
+  --cover:#0d3a5a; --cover2:#0a2d47; --gold:#e5b544; --page:#edf5f1; --guil:#d4e7df;
+  --ink:#15252d; --muted:#4b616c; --line:#bcd3ca; --card:#ffffff; --ok:#1f8a5b; --bad:#c8372d; --warn:#fff2c9;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{background:var(--page);color:var(--ink)}
+body{font-family:var(--f-body);font-size:17px;line-height:1.6;
+  background-image:repeating-radial-gradient(circle at 50% -20%,transparent 0 14px,var(--guil) 14px 15px);}
+body{min-height:100vh}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.2}
+h2{font-size:24px;font-weight:900}
+h3{font-size:18px;font-weight:900}
+.eyebrow{font-size:12px;letter-spacing:.16em;font-weight:700;color:var(--muted)}
+.muted{color:var(--muted)} .small{font-size:14px}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.between{justify-content:space-between}
+.mono{font-family:var(--f-mono)}
+
+.btn{font:inherit;font-weight:700;border:2px solid var(--ink);background:var(--card);color:var(--ink);border-radius:999px;padding:10px 20px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;line-height:1.2;font-size:16px}
+.btn.primary{background:var(--cover);border-color:var(--cover);color:#fff}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:var(--ink)}
+.btn.sm{padding:6px 12px;font-size:14px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+input.code,input.txt{font:inherit;border:2px solid var(--ink);border-radius:10px;padding:10px 14px;background:var(--card);color:var(--ink);min-width:0;width:100%}
+input.code{font-family:var(--f-mono);font-size:22px;letter-spacing:.16em;text-transform:uppercase;text-align:center}
+.msg{min-height:1.5em;font-weight:700;margin:6px 0 0}
+.msg.bad{color:var(--bad)} .msg.ok{color:var(--ok)}
+
+/* Cover */
+.cover{max-width:460px;margin:24px auto 0;background:linear-gradient(160deg,var(--cover),var(--cover2));color:#fff;border-radius:16px 22px 22px 16px;padding:32px 26px 28px;box-shadow:0 18px 40px rgba(13,58,90,.35), inset 10px 0 0 rgba(0,0,0,.18);position:relative}
+.cover .emblem{width:92px;height:92px;border:3px solid var(--gold);border-radius:50%;display:grid;place-items:center;margin:0 auto 16px;color:var(--gold);font-family:var(--f-mono);font-weight:700;font-size:15px;text-align:center;line-height:1.1;outline:1px solid var(--gold);outline-offset:4px}
+.cover h1{color:var(--gold);font-size:34px;font-weight:900;text-align:center;letter-spacing:.08em}
+.cover .sub{color:#cfe0ec;text-align:center;margin:6px 0 22px;font-size:15px}
+.cover label{display:block;font-weight:700;font-size:14px;color:#cfe0ec;margin:14px 0 6px}
+.gpick{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.gpick button{font:inherit;font-weight:900;font-size:20px;border:2px solid rgba(229,181,68,.6);background:transparent;color:#fff;border-radius:10px;height:50px;cursor:pointer}
+.gpick button[aria-pressed="true"]{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+.cover input.txt{border-color:rgba(229,181,68,.6);background:rgba(255,255,255,.08);color:#fff}
+.cover input.txt::placeholder{color:#9fb6c7}
+.cover .btn{width:100%;justify-content:center;margin-top:22px}
+.cover .rules{font-size:14px;color:#cfe0ec;margin:18px 0 0;padding-left:20px}
+
+/* Passport page */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--cover);color:#fff}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--cover)}
+.bar-in{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.bar b{color:var(--gold)}
+.bar .stats{display:flex;gap:16px;font-variant-numeric:tabular-nums}
+.bar .stats span{display:flex;flex-direction:column;align-items:center;font-size:11px;letter-spacing:.1em;color:#a9c1d2}
+.bar .stats b{font-family:var(--f-mono);font-size:20px;letter-spacing:0;line-height:1.1}
+.bar .late b{color:#ff8a7a}
+.banner{background:var(--warn);border:2px solid var(--gold);border-radius:12px;padding:10px 14px;font-weight:700;margin-bottom:14px}
+.visas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:16px}
+@media (max-width:520px){.visas{grid-template-columns:minmax(0,1fr)}}
+.visa{position:relative;background:var(--card);border:2px dashed var(--line);border-radius:14px;padding:16px;min-height:150px;cursor:pointer;text-align:left;font:inherit;color:var(--ink);display:flex;flex-direction:column;gap:4px;overflow:hidden}
+.visa .no{font-family:var(--f-mono);font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em}
+.visa h3{font-size:19px}
+.visa .place{font-size:14px;color:var(--muted)}
+.visa .status{margin-top:auto;font-size:13px;font-weight:700;color:var(--muted)}
+.visa.done{border-style:solid;border-color:var(--line)}
+.stamp{position:absolute;right:14px;bottom:12px;width:96px;height:96px;border:4px double currentColor;border-radius:50%;display:grid;place-items:center;text-align:center;transform:rotate(-14deg);font-weight:900;line-height:1.05;font-size:13px;opacity:.88;mix-blend-mode:multiply}
+.stamp .pts{font-family:var(--f-mono);font-size:24px;display:block}
+.stamp.big{position:static;width:170px;height:170px;font-size:18px;margin:10px auto;border-width:7px}
+.stamp.big .pts{font-size:44px}
+@keyframes thump{0%{transform:scale(2.2) rotate(-30deg);opacity:0}60%{transform:scale(.92) rotate(-12deg);opacity:1}100%{transform:scale(1) rotate(-14deg);opacity:.9}}
+.stamp.big{animation:thump .45s ease-out both}
+.finish{margin-top:22px;display:flex;justify-content:center}
+
+/* Station */
+.sheet{background:var(--card);border:2px solid var(--ink);border-radius:16px;padding:22px;margin-top:14px}
+.sheet .head{border-left:8px solid var(--c,var(--cover));padding-left:12px;margin-bottom:14px}
+.turn{display:inline-block;background:var(--warn);border-radius:999px;padding:3px 12px;font-size:14px;font-weight:700;margin:6px 0 0}
+.unlock{display:grid;gap:10px;max-width:340px;margin-top:14px}
+.task{margin-top:16px}
+.bulbs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:16px 0;max-width:460px}
+.bulb{font:inherit;border:2px solid var(--ink);border-radius:14px;background:var(--card);padding:10px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink)}
+.bulb .lamp{width:38px;height:38px;border-radius:50%;background:#d8dee2;border:2px solid var(--ink)}
+.bulb .v{font-family:var(--f-mono);font-weight:700;font-size:18px}
+.bulb .bit{font-family:var(--f-mono);font-size:14px;color:var(--muted)}
+.bulb[aria-pressed="true"]{background:#fff8dc}
+.bulb[aria-pressed="true"] .lamp{background:var(--gold);box-shadow:0 0 16px var(--gold)}
+.target{font-size:20px;font-weight:900}
+.target .mono{font-size:30px;color:var(--c)}
+.sum{font-family:var(--f-mono);font-size:18px}
+.opts{display:grid;gap:10px;margin-top:12px}
+.opt{font:inherit;text-align:left;border:2px solid var(--ink);border-radius:12px;background:var(--card);padding:12px 14px;cursor:pointer;color:var(--ink)}
+.opt.wrong{border-color:var(--bad);background:#fde9e6;animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.cipher{font-family:var(--f-mono);font-size:clamp(22px,5vw,32px);font-weight:700;letter-spacing:.12em;word-break:break-word}
+.plain{font-family:var(--f-mono);font-size:clamp(22px,5vw,32px);font-weight:700;letter-spacing:.12em;color:var(--c);word-break:break-word}
+.wheel{display:flex;align-items:center;gap:12px;margin:14px 0}
+.wheel input{flex:1;accent-color:var(--c)}
+.alpha{overflow-x:auto;border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:12px}
+.alpha table{border-collapse:collapse;font-family:var(--f-mono);font-size:14px}
+.alpha td{padding:2px 5px;text-align:center}
+.alpha tr+tr td{color:var(--c);font-weight:700}
+.alpha th{font-size:12px;font-weight:700;text-align:left;padding-right:8px;white-space:nowrap;color:var(--muted)}
+.maze{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;max-width:330px;margin:14px 0;aspect-ratio:1}
+.cell{border-radius:6px;background:#f4f7f6;border:1px solid var(--line);position:relative;display:grid;place-items:center;font-size:12px;font-weight:700}
+.cell.wall{background:var(--ink);border-color:var(--ink)}
+.cell.goal{background:repeating-conic-gradient(var(--ink) 0 25%,#fff 0 50%) 0 0/12px 12px}
+.cell.start{background:#dfeee7}
+.cell.crash{background:var(--bad)}
+.cell.trail{background:#dbe6fb}
+.robot{width:70%;height:70%;background:var(--c);border-radius:6px;position:relative;box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.robot::before,.robot::after{content:"";position:absolute;top:30%;width:18%;height:22%;background:#fff;border-radius:2px}
+.robot::before{left:22%}.robot::after{right:22%}
+.prog{display:flex;flex-wrap:wrap;gap:6px;min-height:46px;border:2px dashed var(--line);border-radius:12px;padding:8px;align-items:center}
+.prog .cmd{font-family:var(--f-mono);font-weight:700;background:var(--c);color:#fff;border-radius:8px;padding:4px 10px;font-size:18px}
+.prog .cmd.now{outline:3px solid var(--gold)}
+.pad{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.pad .btn{font-size:22px;padding:8px 18px}
+.result{text-align:center;padding:10px 0}
+
+/* Done */
+.passcode{font-family:var(--f-mono);font-size:clamp(34px,9vw,56px);font-weight:700;letter-spacing:.14em;text-align:center;background:var(--cover);color:var(--gold);border-radius:14px;padding:14px 10px;margin:12px 0}
+.mini{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin:12px 0}
+.mini div{aspect-ratio:1;border-radius:50%;border:3px double currentColor;display:grid;place-items:center;font-weight:900;font-size:13px;opacity:.85}
+.mini div.no{color:var(--line)!important;border-style:dashed}
+.sumgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;text-align:center}
+.sumgrid div{background:var(--page);border-radius:12px;padding:10px}
+.sumgrid b{display:block;font-family:var(--f-mono);font-size:26px}
+
+/* Teacher */
+.card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:18px;margin-bottom:18px;min-width:0}
+.tbl{overflow-x:auto}
+.tbl table{border-collapse:collapse;width:100%;font-size:15px}
+.tbl th,.tbl td{border-top:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+.tbl th{font-size:13px;color:var(--muted);white-space:nowrap}
+.tbl td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.board.bigmode table{font-size:24px}
+.board.bigmode td.num{font-size:28px}
+.qr{display:grid;place-items:center;background:#fff;padding:12px;border-radius:12px;margin-top:12px;min-height:40px}
+.qr img,.qr canvas{max-width:100%;height:auto}
+details summary{cursor:pointer;font-weight:900}
+.posters{display:grid;gap:18px}
+.poster{background:var(--card);border:3px solid var(--ink);border-radius:18px;padding:28px;text-align:center;break-inside:avoid}
+.poster .pno{font-family:var(--f-mono);font-weight:700;font-size:20px;letter-spacing:.12em;color:var(--c)}
+.poster h2{font-size:clamp(30px,6vw,48px);margin:6px 0}
+.poster .pp{font-size:18px;color:var(--muted)}
+.poster .pcode{font-family:var(--f-mono);font-size:clamp(44px,12vw,88px);font-weight:700;letter-spacing:.14em;border:4px dashed var(--c);border-radius:14px;margin:18px auto 10px;padding:6px 18px;display:inline-block;color:var(--ink)}
+.foot{margin-top:28px;font-size:14px}
+.foot a{color:var(--cover)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;z-index:80;max-width:calc(100% - 32px)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(() => {
+'use strict';
+
+/* ================= 老師可修改的設定 =================
+   pass：站點海報上的「通行碼」（到達地點才看得到）
+   done：只交給大使的「完成碼」（checkin 類型的站用）
+   地點、題目、答案都可以改，改完重新發佈即可。 */
+const MINUTES = 30;            // 尋寶時間（分鐘）
+const GROUPS = 10;             // 組數
+const SALT = 'IT-ELITE-2026';  // 核對碼用，不用改
+const STATIONS = [
+  { id:'bin', name:'二進制密碼鎖', place:'電腦室', pass:'BYTE', color:'#c8372d', type:'binary',
+    intro:'電腦裏所有資料都是 0 和 1。每個燈泡代表一個數字，著燈的數字加起來，就是密碼。砌出密碼，打開保險箱！',
+    rounds:[13, 22], hint:'由最大的燈泡開始想：密碼夠不夠 16？夠就開燈，再看 8、4、2、1。' },
+  { id:'dt', name:'3D 打印偵探', place:'設計與科技室', pass:'PRINT', color:'#d9711c', type:'quiz',
+    intro:'仔細看看枱上的 3D 打印作品，可以拿起來摸一摸，再回答問題。',
+    qs:[
+      { q:'3D 打印機是怎樣造出物件的？', opts:['一層一層疊上去','把一大塊材料切出來','倒入模具一次完成'], a:0 },
+      { q:'用手摸作品的側面，你會感覺到甚麼？', opts:['一條一條幼紋（每一層）','完全光滑像玻璃','有毛像毛巾'], a:0 },
+      { q:'按「打印」之前，設計師要先做甚麼？', opts:['用電腦畫出 3D 模型','用紙摺一個樣板','甚麼都不用做'], a:0 }
+    ], hint:'看看打印機的噴嘴怎樣移動：它每次只畫一層薄薄的膠。' },
+  { id:'lib', name:'圖書館密碼信', place:'圖書館', pass:'BOOK', color:'#6a3fb5', type:'caesar',
+    intro:'圖書館主任留下一封密碼信。每個英文字母都向後移了幾個位。拉動密碼輪，找出原本的訊息。',
+    cipher:'UHDG PRUH ERRNV', question:'解開後，訊息最後一個英文字是甚麼？', answer:['BOOKS'],
+    hint:'把密碼輪拉到 3 附近試試。' },
+  { id:'maze', name:'機械人迷宮', place:'禮堂', pass:'ROBOT', color:'#2459c4', type:'maze',
+    intro:'寫一段程式，帶機械人由起點走到終點旗。按箭咀加入指令，寫好整段再按「執行」。',
+    map:['S..#..','##.#.#','.....#','.###..','...##.','##...G'], maxSteps:14,
+    hint:'第一步：向右走兩格，然後向下。' },
+  { id:'gal', name:'遊戲展覽館', place:'展覽館', done:'VOTE', color:'#1f8a5b', type:'checkin',
+    intro:'用展覽館的電腦試玩第一堂同學設計的遊戲。全組商量，投票給最喜歡的一個。投票後，大使會給你們完成碼。' },
+  { id:'cam', name:'感應器獵人', place:'操場', done:'SENSE', color:'#b83280', type:'checkin',
+    intro:'很多東西都有感應器：自動門、感應水龍頭、感應燈……在附近找一件有感應器的東西，用 iPad 相機拍下來，拿給大使看，並說出它感應甚麼。說對了，大使會給你們完成碼。' }
+];
+const FULL = 20, STEP = 5, MIN = 5;   // 每站最高 20 分；答錯或用提示扣 5 分；最少 5 分
+
+/* ================= 工具 ================= */
+const $ = s => document.querySelector(s);
+const app = $('#app');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const S = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} },
+  del(k){ try { localStorage.removeItem(k); } catch(e){} }
+};
+let toastT;
+function toast(m){ const t = $('#toast'); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2400); }
+function twoStep(btn, fn){
+  if (btn.dataset.armed){ delete btn.dataset.armed; btn.textContent = btn.dataset.label; fn(); return; }
+  btn.dataset.label = btn.textContent; btn.dataset.armed = '1'; btn.textContent = '再按一次確定';
+  setTimeout(() => { if (btn.dataset.armed){ delete btn.dataset.armed; btn.textContent = btn.dataset.label; } }, 3000);
+}
+const norm = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+const mmss = sec => { const s = Math.max(0, Math.floor(Math.abs(sec))); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+
+/* 核對碼：組別、分數、用時、完成站點 + 檢查位，7 個字 */
+const B32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+function h12(v){ let h = 2166136261; for (const ch of SALT + ':' + v){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return (h >>> 0) & 4095; }
+function makeCode(group, score, mins, mask){
+  const v = group + Math.min(score, 127) * 16 + Math.min(mins, 63) * 2048 + mask * 131072;
+  let n = v * 4096 + h12(v), s = '';
+  for (let i = 0; i < 7; i++){ s = B32[n % 32] + s; n = Math.floor(n / 32); }
+  return s.slice(0, 4) + '-' + s.slice(4);
+}
+function readCode(str){
+  const c = String(str).toUpperCase().replace(/O/g, '0').replace(/[IL]/g, '1').replace(/[^0-9A-Z]/g, '');
+  if (c.length !== 7) return null;
+  let n = 0; for (const ch of c){ const k = B32.indexOf(ch); if (k < 0) return null; n = n * 32 + k; }
+  const chk = n % 4096, v = Math.floor(n / 4096);
+  if (h12(v) !== chk) return null;
+  return { group: v % 16, score: Math.floor(v / 16) % 128, mins: Math.floor(v / 2048) % 64, mask: Math.floor(v / 131072) % 64, code: c.slice(0, 4) + '-' + c.slice(4) };
+}
+
+/* ================= 學生狀態 ================= */
+let st = S.get('hunt-state', null);
+const fresh = () => ({ group:0, team:'', start:0, finished:0, s:{} });
+if (!st || typeof st !== 'object' || !st.s) st = fresh();
+const save = () => S.set('hunt-state', st);
+const rec = id => st.s[id] = st.s[id] || { unlocked:false, done:false, score:0, wrong:0, hint:false };
+const total = () => STATIONS.reduce((a, x) => a + (st.s[x.id] && st.s[x.id].done ? st.s[x.id].score : 0), 0);
+const doneCount = () => STATIONS.filter(x => st.s[x.id] && st.s[x.id].done).length;
+const elapsed = () => st.start ? ((st.finished || Date.now()) - st.start) / 1000 : 0;
+const stationScore = r => Math.max(MIN, FULL - STEP * (r.wrong + (r.hint ? 1 : 0)));
+
+/* ================= 畫面 ================= */
+let view = 'cover', curId = null, tick = null;
+
+function topBar(){
+  const left = MINUTES * 60 - elapsed();
+  return `<div class="bar"><div class="bar-in">
+    <div><span class="eyebrow" style="color:#a9c1d2">校園尋寶護照</span><div style="font-weight:900">第 <b>${st.group}</b> 組${st.team ? ' · ' + esc(st.team) : ''}</div></div>
+    <div class="stats"><span class="${left < 0 ? 'late' : ''}">${left < 0 ? '超時' : '剩餘時間'}<b id="clock">${mmss(left)}</b></span><span>印章<b>${doneCount()}/${STATIONS.length}</b></span><span>分數<b>${total()}</b></span></div>
+  </div></div>`;
+}
+function startClock(){
+  clearInterval(tick);
+  tick = setInterval(() => {
+    const el = $('#clock'); if (!el || !st.start || st.finished) return;
+    const left = MINUTES * 60 - elapsed(); el.textContent = mmss(left);
+    if (left < 0 && !el.parentElement.classList.contains('late')){ render(); }
+  }, 1000);
+}
+
+function renderCover(){
+  let g = st.group || 0;
+  app.innerHTML = `<div class="wrap"><div class="cover">
+    <div class="emblem">IT<br>精英班</div>
+    <h1>校園尋寶護照</h1>
+    <p class="sub">走遍校園 ${STATIONS.length} 個站，完成挑戰，收集印章</p>
+    <label>你們是第幾組？</label>
+    <div class="gpick">${Array.from({ length: GROUPS }, (_, i) => `<button data-g="${i+1}" aria-pressed="${g === i+1}">${i+1}</button>`).join('')}</div>
+    <label for="team">隊名（選填）</label>
+    <input id="team" class="txt" maxlength="10" placeholder="例如 閃電小隊" value="${esc(st.team)}" autocomplete="off">
+    <button class="btn gold" id="go">開始尋寶</button>
+    <p class="msg" id="cmsg" style="color:#ffb3a6;text-align:center"></p>
+    <ul class="rules">
+      <li>每組用一部 iPad 做護照，組員自己排 1 至 4 號，輪流操作。</li>
+      <li>到達每個站，在海報上找「通行碼」解鎖挑戰。</li>
+      <li>每站最高 ${FULL} 分，答錯或看提示會扣分。</li>
+      <li>限時 ${MINUTES} 分鐘，時間到就回課室。</li>
+    </ul>
+  </div><p class="foot" style="text-align:center"><a href="#teacher">老師入口</a></p></div>`;
+  app.querySelectorAll('.gpick button').forEach(b => b.onclick = () => { g = +b.dataset.g; app.querySelectorAll('.gpick button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+  $('#go').onclick = () => {
+    if (!g){ $('#cmsg').textContent = '請先揀組別。'; return; }
+    st.group = g; st.team = $('#team').value.trim(); if (!st.start) st.start = Date.now(); save();
+    view = 'book'; render();
+  };
+}
+
+function renderBook(){
+  const left = MINUTES * 60 - elapsed();
+  const mem = (doneCount() % 4) + 1;
+  app.innerHTML = topBar() + `<div class="wrap">
+    ${left < 0 ? '<div class="banner">時間到！請立即返回課室，然後按下面「完成尋寶」。</div>' : ''}
+    <div class="row between"><h2>我的護照</h2><span class="small muted">下一站由第 ${mem} 號隊員操作</span></div>
+    <div class="visas">${STATIONS.map((x, i) => {
+      const r = st.s[x.id] || {};
+      return `<button class="visa${r.done ? ' done' : ''}" data-id="${x.id}" style="--c:${x.color}">
+        <span class="no">第 ${i+1} 站</span><h3>${esc(x.name)}</h3><span class="place">地點：${esc(x.place)}</span>
+        <span class="status">${r.done ? '已完成' : r.unlocked ? '已解鎖，未完成' : x.type === 'checkin' ? '完成任務後找大使' : '未到達'}</span>
+        ${r.done ? `<span class="stamp" style="color:${x.color}">${esc(x.name.slice(0, 5))}<span class="pts">+${r.score}</span></span>` : ''}
+      </button>`; }).join('')}</div>
+    <div class="finish"><button class="btn primary" id="fin">${doneCount() === STATIONS.length ? '全部完成！查看成績' : '完成尋寶'}</button></div>
+    <p class="small muted" style="text-align:center">未完成所有站也可以按「完成尋寶」。按了就不能再加分。</p>
+  </div>`;
+  app.querySelectorAll('.visa').forEach(b => b.onclick = () => { curId = b.dataset.id; view = 'station'; render(); });
+  $('#fin').onclick = e => {
+    if (doneCount() === STATIONS.length){ finish(); return; }
+    twoStep(e.currentTarget, finish);
+  };
+  startClock();
+}
+function finish(){ if (!st.finished) st.finished = Date.now(); save(); view = 'done'; render(); }
+
+function renderStation(){
+  const x = STATIONS.find(s => s.id === curId); if (!x){ view = 'book'; return render(); }
+  const r = rec(x.id); const i = STATIONS.indexOf(x);
+  const mem = r.done ? null : (doneCount() % 4) + 1;
+  app.innerHTML = topBar() + `<div class="wrap" style="--c:${x.color}">
+    <button class="btn sm" id="back">← 返回護照</button>
+    <div class="sheet">
+      <div class="head"><span class="eyebrow">第 ${i+1} 站 · ${esc(x.place)}</span><h2>${esc(x.name)}</h2>${mem ? `<span class="turn">由第 ${mem} 號隊員操作</span>` : ''}</div>
+      <p style="margin:0">${esc(x.intro)}</p>
+      <div id="body"></div>
+    </div>
+  </div>`;
+  $('#back').onclick = () => { view = 'book'; render(); };
+  const body = $('#body');
+  if (r.done){ body.innerHTML = `<div class="result"><span class="stamp big" style="color:${x.color}">${esc(x.name.slice(0, 5))}<span class="pts">+${r.score}</span></span><p>這一站已經完成。</p></div>`; startClock(); return; }
+  if (x.type === 'checkin'){
+    body.innerHTML = `<div class="unlock"><label class="small" for="code"><b>完成任務後，輸入大使給你的完成碼</b></label><input id="code" class="code" autocomplete="off" autocapitalize="characters"><button class="btn primary" id="ok">確認</button><p class="msg" id="m"></p></div>`;
+    $('#ok').onclick = () => {
+      if (norm($('#code').value) === norm(x.done)){ r.unlocked = true; complete(x, r); }
+      else { $('#m').className = 'msg bad'; $('#m').textContent = '完成碼不正確，請向大使再確認一次。'; }
+    };
+    startClock(); return;
+  }
+  if (!r.unlocked){
+    body.innerHTML = `<div class="unlock"><label class="small" for="code"><b>到達${esc(x.place)}後，在海報上找通行碼</b></label><input id="code" class="code" autocomplete="off" autocapitalize="characters"><button class="btn primary" id="ok">解鎖挑戰</button><p class="msg" id="m"></p></div>`;
+    $('#ok').onclick = () => {
+      if (norm($('#code').value) === norm(x.pass)){ r.unlocked = true; save(); renderStation(); }
+      else { $('#m').className = 'msg bad'; $('#m').textContent = '通行碼不正確。你們是否在正確的地點？'; }
+    };
+    startClock(); return;
+  }
+  body.innerHTML = `<div class="task" id="task"></div>
+    <div class="row" style="margin-top:16px"><button class="btn sm" id="hint">${r.hint ? '提示' : '看提示（扣 ' + STEP + ' 分）'}</button><span class="small muted" id="worth"></span></div>
+    <p class="small" id="hintText" ${r.hint ? '' : 'hidden'}><b>提示：</b>${esc(x.hint)}</p>`;
+  const worth = () => $('#worth').textContent = `完成這站可得 ${stationScore(r)} 分`;
+  worth();
+  $('#hint').onclick = () => { if (!r.hint){ r.hint = true; save(); } $('#hintText').hidden = false; $('#hint').textContent = '提示'; worth(); };
+  const wrong = () => { r.wrong++; save(); worth(); };
+  TASKS[x.type](x, r, $('#task'), () => complete(x, r), wrong);
+  startClock();
+}
+
+function complete(x, r){
+  r.done = true; r.score = x.type === 'checkin' ? FULL : stationScore(r); r.at = Date.now(); save();
+  $('#body').innerHTML = `<div class="result"><span class="stamp big" style="color:${x.color}">${esc(x.name.slice(0, 5))}<span class="pts">+${r.score}</span></span>
+    <h3>蓋印成功！</h3><p class="muted">${doneCount() === STATIONS.length ? '全部站都完成了，回課室交成績吧！' : '還有 ' + (STATIONS.length - doneCount()) + ' 個站，下一站換另一位隊員操作。'}</p>
+    <button class="btn primary" id="back2">返回護照</button></div>`;
+  $('#back2').onclick = () => { view = 'book'; render(); };
+  const bar = document.querySelector('.bar'); if (bar){ const tmp = document.createElement('div'); tmp.innerHTML = topBar(); bar.replaceWith(tmp.firstElementChild); }
+}
+
+/* ---------- 各種挑戰 ---------- */
+const TASKS = {
+  binary(x, r, el, ok, bad){
+    let round = 0; const vals = [16, 8, 4, 2, 1]; let on = [0,0,0,0,0];
+    const draw = () => {
+      const sum = vals.reduce((a, v, i) => a + (on[i] ? v : 0), 0);
+      el.innerHTML = `<p class="target">第 ${round+1} / ${x.rounds.length} 個保險箱　密碼：<span class="mono">${x.rounds[round]}</span></p>
+        <div class="bulbs">${vals.map((v, i) => `<button class="bulb" data-i="${i}" aria-pressed="${!!on[i]}"><span class="lamp"></span><span class="v">${v}</span><span class="bit">${on[i] ? 1 : 0}</span></button>`).join('')}</div>
+        <p class="sum">二進制：<b>${on.join('')}</b>　加起來 = <b>${sum}</b></p>
+        <button class="btn primary" id="try">開鎖</button><p class="msg" id="m"></p>`;
+      el.querySelectorAll('.bulb').forEach(b => b.onclick = () => { on[+b.dataset.i] ^= 1; draw(); });
+      $('#try').onclick = () => {
+        if (sum === x.rounds[round]){
+          round++; on = [0,0,0,0,0];
+          if (round >= x.rounds.length) ok(); else { draw(); $('#m').className = 'msg ok'; $('#m').textContent = '第一個保險箱打開了！再開下一個。'; }
+        } else { bad(); $('#m').className = 'msg bad'; $('#m').textContent = `加起來是 ${sum}，不是 ${x.rounds[round]}。再試試！`; }
+      };
+    };
+    draw();
+  },
+  quiz(x, r, el, ok, bad){
+    let k = 0;
+    const draw = () => {
+      const q = x.qs[k];
+      el.innerHTML = `<p class="small muted">第 ${k+1} / ${x.qs.length} 題</p><h3>${esc(q.q)}</h3>
+        <div class="opts">${q.opts.map((o, i) => ({ o, i })).sort(() => Math.random() - .5).map(({ o, i }) => `<button class="opt" data-i="${i}">${esc(o)}</button>`).join('')}</div><p class="msg" id="m"></p>`;
+      el.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+        if (+b.dataset.i === q.a){ k++; if (k >= x.qs.length) ok(); else draw(); }
+        else { bad(); b.classList.add('wrong'); b.disabled = true; $('#m').className = 'msg bad'; $('#m').textContent = '不是這個，再想想！'; }
+      });
+    };
+    draw();
+  },
+  caesar(x, r, el, ok, bad){
+    let sh = 0; const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const dec = (t, n) => t.replace(/[A-Z]/g, c => A[(A.indexOf(c) - n + 26) % 26]);
+    el.innerHTML = `<p class="small muted" style="margin:0">密碼信</p><div class="cipher">${esc(x.cipher)}</div>
+      <div class="wheel"><span class="small">密碼輪</span><input type="range" id="sh" min="0" max="25" value="0" aria-label="密碼輪"><b class="mono" id="shv">0</b></div>
+      <div class="alpha" id="alpha"></div>
+      <p class="small muted" style="margin:0">解開後</p><div class="plain" id="plain"></div>
+      <div class="unlock"><label class="small" for="ans"><b>${esc(x.question)}</b></label><input id="ans" class="code" autocomplete="off" autocapitalize="characters"><button class="btn primary" id="sub">提交答案</button><p class="msg" id="m"></p></div>`;
+    const upd = () => {
+      $('#shv').textContent = sh; $('#plain').textContent = dec(x.cipher, sh);
+      $('#alpha').innerHTML = `<table><tr><th>密碼字母</th>${[...A].map(c => `<td>${c}</td>`).join('')}</tr><tr><th>原本字母</th>${[...A].map(c => `<td>${dec(c, sh)}</td>`).join('')}</tr></table>`;
+    };
+    $('#sh').oninput = e => { sh = +e.target.value; upd(); };
+    upd();
+    $('#sub').onclick = () => {
+      if (x.answer.map(norm).includes(norm($('#ans').value))) ok();
+      else { bad(); $('#m').className = 'msg bad'; $('#m').textContent = '答案不正確，先把整句解開再試。'; }
+    };
+  },
+  maze(x, r, el, ok, bad){
+    const M = x.map, R = M.length, C = M[0].length; let sr = 0, sc = 0;
+    M.forEach((row, i) => { const j = row.indexOf('S'); if (j >= 0){ sr = i; sc = j; } });
+    let prog = [], pos = [sr, sc], running = false, trail = [], crash = null, now = -1;
+    const D = { '↑':[-1,0], '↓':[1,0], '←':[0,-1], '→':[0,1] };
+    const draw = msg => {
+      el.innerHTML = `<div class="maze">${M.map((row, i) => [...row].map((ch, j) => {
+          const cls = ch === '#' ? 'wall' : ch === 'G' ? 'goal' : ch === 'S' ? 'start' : '';
+          const t = trail.some(p => p[0] === i && p[1] === j) ? ' trail' : '';
+          const c = crash && crash[0] === i && crash[1] === j ? ' crash' : '';
+          return `<div class="cell ${cls}${t}${c}">${pos[0] === i && pos[1] === j ? '<span class="robot"></span>' : ''}</div>`; }).join('')).join('')}</div>
+        <p class="small muted" style="margin:0">程式（${prog.length} / ${x.maxSteps} 步）</p>
+        <div class="prog">${prog.length ? prog.map((p, i) => `<span class="cmd${i === now ? ' now' : ''}">${p}</span>`).join('') : '<span class="small muted">按下面的箭咀加入指令</span>'}</div>
+        <div class="pad">${Object.keys(D).map(k => `<button class="btn" data-k="${k}" ${running ? 'disabled' : ''} aria-label="${{'↑':'向上','↓':'向下','←':'向左','→':'向右'}[k]}">${k}</button>`).join('')}</div>
+        <div class="row"><button class="btn sm" id="del" ${running ? 'disabled' : ''}>刪除最後一步</button><button class="btn sm" id="clr" ${running ? 'disabled' : ''}>清除</button><button class="btn primary" id="run" ${running || !prog.length ? 'disabled' : ''}>▶ 執行程式</button></div>
+        <p class="msg ${msg && msg[0] === '!' ? 'bad' : ''}" id="m">${msg ? esc(msg.replace(/^!/, '')) : ''}</p>`;
+      el.querySelectorAll('.pad .btn').forEach(b => b.onclick = () => { if (prog.length < x.maxSteps){ prog.push(b.dataset.k); crash = null; trail = []; pos = [sr, sc]; draw(); } else draw('!最多 ' + x.maxSteps + ' 步。'); });
+      $('#del').onclick = () => { prog.pop(); draw(); };
+      $('#clr').onclick = () => { prog = []; trail = []; crash = null; pos = [sr, sc]; draw(); };
+      $('#run').onclick = run;
+    };
+    const run = () => {
+      running = true; pos = [sr, sc]; trail = [[sr, sc]]; crash = null; now = -1; draw('機械人出發！');
+      let k = 0;
+      const stepT = setInterval(() => {
+        if (!document.body.contains(el)){ clearInterval(stepT); return; }
+        if (k >= prog.length){
+          clearInterval(stepT); running = false; now = -1;
+          if (M[pos[0]][pos[1]] === 'G'){ draw('到達終點！'); setTimeout(ok, 500); }
+          else { bad(); draw('!程式完了，但機械人未到終點。加多幾步再試。'); }
+          return;
+        }
+        now = k; const [dr, dc] = D[prog[k]]; const nr = pos[0] + dr, nc = pos[1] + dc;
+        if (nr < 0 || nc < 0 || nr >= R || nc >= C || M[nr][nc] === '#'){
+          clearInterval(stepT); running = false; crash = (nr < 0 || nc < 0 || nr >= R || nc >= C) ? pos.slice() : [nr, nc]; bad();
+          draw(`!第 ${k+1} 步撞牆了！修改程式再試。`); now = -1; return;
+        }
+        pos = [nr, nc]; trail.push(pos.slice()); k++; draw('機械人行走中……');
+        if (M[nr][nc] === 'G' && k === prog.length){ /* handled next tick */ }
+      }, 380);
+    };
+    draw();
+  }
+};
+
+function renderDone(){
+  const mins = Math.ceil(elapsed() / 60);
+  const mask = STATIONS.reduce((a, x, i) => a | ((st.s[x.id] && st.s[x.id].done ? 1 : 0) << i), 0);
+  const code = makeCode(st.group, total(), mins, mask);
+  clearInterval(tick);
+  app.innerHTML = `<div class="wrap"><div class="sheet" style="margin-top:0">
+    <div class="eyebrow">尋寶完成</div><h2>第 ${st.group} 組${st.team ? ' · ' + esc(st.team) : ''}</h2>
+    <div class="mini">${STATIONS.map(x => { const d = st.s[x.id] && st.s[x.id].done; return `<div class="${d ? '' : 'no'}" style="color:${x.color}">${d ? '+' + st.s[x.id].score : ''}</div>`; }).join('')}</div>
+    <div class="sumgrid"><div>印章<b>${doneCount()}/${STATIONS.length}</b></div><div>總分<b>${total()}</b></div><div>用時<b>${mins} 分</b></div></div>
+    <p style="margin:18px 0 0;text-align:center"><b>把這個核對碼給老師</b></p>
+    <div class="passcode">${code}</div>
+    <p class="small muted" style="text-align:center">核對碼包含你們的組別、分數和用時，老師輸入後會自動計分。</p>
+  </div>
+  <p class="foot" style="text-align:center"><button class="btn sm" id="reset">重設這部 iPad（老師用）</button></p></div>`;
+  $('#reset').onclick = e => twoStep(e.currentTarget, () => { st = fresh(); save(); view = 'cover'; render(); });
+}
+
+/* ================= 老師頁 ================= */
+let board = S.get('hunt-board', []);
+if (!Array.isArray(board)) board = [];
+let bigMode = false;
+function rankList(){ return board.slice().sort((a, b) => b.score - a.score || a.mins - b.mins); }
+function renderTeacher(){
+  const ranked = rankList();
+  app.innerHTML = `<div class="wrap">
+    <div class="row between" style="margin-bottom:16px"><div><div class="eyebrow">老師控制台 · 第三堂</div><h2 style="font-size:30px">校園尋寶</h2></div>
+      <div class="row"><a class="btn" href="#posters">站點海報</a><a class="btn" href="#">學生頁</a></div></div>
+
+    <section class="card board${bigMode ? ' bigmode' : ''}">
+      <div class="row between"><h3>計分板</h3><button class="btn sm" id="big">${bigMode ? '一般大小' : '投影大字'}</button></div>
+      <div class="row" style="margin-top:10px;max-width:520px"><input id="pc" class="code" placeholder="XXXX-XXX" style="flex:1;min-width:160px" autocomplete="off" autocapitalize="characters"><button class="btn primary" id="add">加入</button></div>
+      <p class="msg" id="pm"></p>
+      ${ranked.length ? `<div class="tbl"><table><tr><th>名次</th><th>組別</th><th>印章</th><th>分數</th><th>用時</th><th>核對碼</th><th></th></tr>
+        ${ranked.map((b, i) => `<tr><td class="num">${i+1}</td><td class="num">第 ${b.group} 組</td><td class="num">${STATIONS.filter((_, k) => b.mask >> k & 1).length}/${STATIONS.length}</td><td class="num"><b>${b.score}</b></td><td class="num">${b.mins} 分</td><td class="num">${b.code}</td><td><button class="btn sm" data-del="${b.group}">刪除</button></td></tr>`).join('')}
+      </table></div>` : '<p class="muted small" style="margin:0">各組完成後，把 iPad 上的核對碼輸入這裏。同一組再輸入會覆蓋舊紀錄。名次按分數，同分比用時。</p>'}
+    </section>
+
+    <section class="card">
+      <h3>開場 QR 碼</h3>
+      <p class="small muted" style="margin:4px 0 0">把這個網頁的分享連結貼在下面，產生 QR 碼投影出來，學生用 iPad 相機掃描就可以打開。</p>
+      <div class="row" style="margin-top:10px"><input id="link" class="txt" placeholder="https://claude.ai/..." style="flex:1;min-width:200px" value="${esc(S.get('hunt-link', '') || (/github\.io$|pages\.dev$/.test(location.hostname) ? location.href.split('#')[0] : ''))}"><button class="btn primary" id="mkqr">產生 QR 碼</button></div>
+      <div class="qr" id="qr" hidden></div>
+    </section>
+
+    <section class="card">
+      <h3>站點與大使資料</h3>
+      <div class="tbl"><table><tr><th>站</th><th>挑戰</th><th>地點</th><th>海報通行碼</th><th>大使完成碼</th><th>大使要做</th></tr>
+        ${STATIONS.map((x, i) => `<tr><td class="num">${i+1}</td><td>${esc(x.name)}</td><td>${esc(x.place)}</td><td class="num">${x.pass ? esc(x.pass) : '—'}</td><td class="num">${x.done ? esc(x.done) : '—'}</td><td class="small">${x.type === 'checkin' ? (x.id === 'gal' ? '看着學生用展覽館電腦投票，投票後給完成碼' : '檢查相片並聽學生解釋，正確才給完成碼') : '維持秩序、提醒輪流操作；不用給碼'}</td></tr>`).join('')}
+      </table></div>
+      <p class="small muted">地點、通行碼和題目都可以按學校實際情況修改。</p>
+    </section>
+
+    <details class="card"><summary>第三堂流程（45 分鐘，約 40 人分 10 組）</summary>
+      <div class="tbl"><table>
+        <tr><th>0–5 分</th><td>分組（兩班混合，每組 4 人），每組揀一部 iPad 做護照。投影 QR 碼，學生打開網頁並揀組別。說明規則和安全。</td></tr>
+        <tr><th>5–35 分</th><td>出發尋寶。各組由不同的站開始（第 1 組去第 1 站，第 2 組去第 2 站……第 7–10 組由第 1–4 站開始），避免擠在同一站。每站約 4–5 分鐘。</td></tr>
+        <tr><th>35–40 分</th><td>回課室，各組按「完成尋寶」，老師輸入核對碼，投影計分板。</td></tr>
+        <tr><th>40–45 分</th><td>頒獎：尋寶冠軍隊、人氣遊戲獎（第一堂作品投票）、最佳遊戲設計、最佳 3D 作品、最投入學員。</td></tr>
+      </table></div>
+    </details>
+    <p class="foot"><a href="#">返回學生頁</a></p>
+  </div>`;
+  const add = () => {
+    const r = readCode($('#pc').value);
+    if (!r || r.group < 1 || r.group > GROUPS){ $('#pm').className = 'msg bad'; $('#pm').textContent = '核對碼不正確，請再看清楚（共 7 個字）。'; return; }
+    board = board.filter(b => b.group !== r.group); board.push(r); S.set('hunt-board', board);
+    renderTeacher(); $('#pm').className = 'msg ok'; $('#pm').textContent = `已加入第 ${r.group} 組：${r.score} 分，用時 ${r.mins} 分鐘。`;
+    $('#pc').focus();
+  };
+  $('#add').onclick = add;
+  $('#pc').onkeydown = e => { if (e.key === 'Enter') add(); };
+  $('#big').onclick = () => { bigMode = !bigMode; renderTeacher(); };
+  app.querySelectorAll('[data-del]').forEach(b => b.onclick = () => twoStep(b, () => { board = board.filter(x => x.group !== +b.dataset.del); S.set('hunt-board', board); renderTeacher(); }));
+  $('#mkqr').onclick = () => {
+    const url = $('#link').value.trim(); const box = $('#qr');
+    if (!/^https?:\/\//.test(url)){ box.hidden = false; box.innerHTML = '<p class="msg bad">請貼上以 https:// 開頭的連結。</p>'; return; }
+    S.set('hunt-link', url); box.hidden = false; box.innerHTML = '';
+    if (typeof QRCode === 'undefined'){ box.innerHTML = '<p class="msg bad">QR 碼工具載入失敗，請重新整理頁面。</p>'; return; }
+    new QRCode(box, { text: url, width: 320, height: 320, correctLevel: QRCode.CorrectLevel.M });
+  };
+}
+
+function renderPosters(){
+  app.innerHTML = `<div class="wrap"><div class="row between" style="margin-bottom:16px"><div><div class="eyebrow">站點海報</div><h2>每站一張，可截圖列印</h2></div><a class="btn" href="#teacher">返回控制台</a></div>
+    <div class="posters">${STATIONS.map((x, i) => `<div class="poster" style="--c:${x.color}">
+      <div class="pno">STATION ${i+1}</div><h2>${esc(x.name)}</h2><div class="pp">校園尋寶 · ${esc(x.place)}</div>
+      ${x.pass ? `<div class="pcode">${esc(x.pass)}</div><p>在護照點「第 ${i+1} 站」，輸入上面的通行碼解鎖挑戰。</p>` : `<p style="font-size:20px;margin-top:20px">完成任務後，找大使拿完成碼，<br>在護照點「第 ${i+1} 站」輸入。</p>`}
+    </div>`).join('')}</div></div>`;
+}
+
+/* ================= 路由 ================= */
+function render(){
+  const h = location.hash.replace('#', '');
+  window.scrollTo(0, 0);
+  if (h === 'teacher'){ clearInterval(tick); return renderTeacher(); }
+  if (h === 'posters'){ clearInterval(tick); return renderPosters(); }
+  if (st.finished) view = 'done';
+  else if (!st.group || !st.start) view = 'cover';
+  else if (view === 'cover') view = 'book';
+  ({ cover: renderCover, book: renderBook, station: renderStation, done: renderDone })[view]();
+}
+window.addEventListener('hashchange', render);
+render();
+})();
+</script>
+</body>
+</html>

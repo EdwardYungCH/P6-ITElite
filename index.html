@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>IT精英班</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Noto+Sans+TC:wght@400;700;900&display=swap">
+<style>
+/* Layout: one column of lesson tickets on graph paper, matching the lesson 1 workbench. */
+:root{--paper:#f1f4fa;--grid:#dde4f1;--ink:#182037;--muted:#55607b;--card:#fff;--tomato:#e8473a;--sun:#ffc53d;--sea:#0d3a5a;--gold:#e5b544;--line:#c6d0e3;
+  --f-display:"DotGothic16","Noto Sans TC","Microsoft JhengHei","PingFang TC",monospace;
+  --f-body:"Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;color-scheme:light}
+*{box-sizing:border-box}
+html,body{background:var(--paper);color:var(--ink)}
+body{margin:0;min-height:100vh;font-family:var(--f-body);line-height:1.6;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+.wrap{max-width:820px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:calc(40px + env(safe-area-inset-top,0px)) 48px}
+.eyebrow{font-size:12px;letter-spacing:.14em;font-weight:700;color:var(--muted)}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(34px,7vw,56px);line-height:1.05;margin:4px 0 8px}
+.lead{color:var(--muted);margin:0 0 28px}
+.list{display:grid;gap:16px}
+.lesson{display:grid;grid-template-columns:72px minmax(0,1fr);gap:16px;align-items:center;background:var(--card);border:3px solid var(--ink);border-radius:10px;padding:18px;box-shadow:6px 6px 0 var(--ink)}
+.no{font-family:var(--f-display);font-size:30px;width:72px;height:72px;border-radius:10px;display:grid;place-items:center;color:#fff}
+.lesson h2{margin:0;font-size:22px;font-weight:900}
+.lesson p{margin:2px 0 10px;color:var(--muted);font-size:15px}
+.links{display:flex;gap:10px;flex-wrap:wrap}
+.btn{font-weight:700;font-size:15px;border:2px solid var(--ink);border-radius:6px;padding:8px 14px;text-decoration:none;color:var(--ink);background:var(--card);box-shadow:3px 3px 0 var(--ink)}
+.btn.main{background:var(--tomato);color:#fff}
+.lesson.off{box-shadow:none;border-style:dashed;border-color:var(--line)}
+.lesson.off .no{background:var(--line);color:var(--ink)}
+.btn:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+@media (max-width:480px){.lesson{grid-template-columns:minmax(0,1fr)}.no{width:56px;height:56px;font-size:24px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="eyebrow">小六體驗課 · 三堂 · 每堂 45 分鐘</div>
+  <h1>IT精英班</h1>
+  <p class="lead">設計自己的電腦遊戲，用 3D 畫出作品，再拿着 iPad 走遍校園尋寶。</p>
+  <div class="list">
+    <section class="lesson">
+      <div class="no" style="background:var(--tomato)">01</div>
+      <div><h2>小小遊戲設計師</h2><p>電腦室 · 畫像素角色、定規則，做一個屬於自己的接寶物遊戲。</p>
+        <div class="links"><a class="btn main" href="game/">學生開始</a><a class="btn" href="game/#teacher">老師控制台</a><a class="btn" href="game/#gallery">遊戲展覽館</a></div></div>
+    </section>
+    <section class="lesson off">
+      <div class="no">02</div>
+      <div><h2>3D 繪圖</h2><p>電腦室 · 由老師帶領，使用學校的 3D 繪圖軟件。</p></div>
+    </section>
+    <section class="lesson">
+      <div class="no" style="background:var(--sea);color:var(--gold)">03</div>
+      <div><h2>校園尋寶護照</h2><p>自己的 iPad · 6 個站點挑戰，收集印章，認識中學校園。</p>
+        <div class="links"><a class="btn main" href="hunt/">學生開始</a><a class="btn" href="hunt/#teacher">老師計分板</a><a class="btn" href="hunt/#posters">站點海報</a></div></div>
+    </section>
+  </div>
+</main>
+</body>
+</html>
