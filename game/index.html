@@ -76,13 +76,13 @@ h3{font-size:17px;margin:0 0 8px;font-weight:900}
 .gtype[aria-pressed="true"] img{border-bottom-color:var(--ink)}
 .gtype[aria-pressed="true"] .gt b::after{content:" ✓";color:var(--mint)}
 
-.slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0}
+.slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0 12px}
 .slot{display:flex;gap:10px;align-items:center;border:2px solid var(--line);border-radius:8px;padding:8px;background:var(--card);cursor:pointer;text-align:left;font:inherit;color:var(--ink);min-width:0}
 .slot img{width:48px;height:48px;flex:none;image-rendering:pixelated;border:1px solid var(--line);border-radius:4px;background:conic-gradient(#e9edf5 25%,#fff 0 50%,#e9edf5 0 75%,#fff 0) 0 0/12px 12px}
 .slot b{display:block;font-size:15px}
 .slot small{color:var(--muted);font-size:12px;line-height:1.3;display:block}
 .slot[aria-pressed="true"]{border-color:var(--ink);background:var(--cream);box-shadow:3px 3px 0 var(--ink)}
-@media (max-width:560px){.slot{flex-direction:column;text-align:center}.slot small{display:none}}
+@media (max-width:900px){.slot{flex-direction:column;text-align:center}.slot small{display:none}}
 
 .editor{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:22px;align-items:start}
 @media (max-width:700px){.editor{grid-template-columns:minmax(0,1fr)}}
@@ -211,6 +211,34 @@ details.card summary{cursor:pointer;font-weight:900}
 .foot{margin-top:28px;font-size:14px}
 .foot a{color:var(--sky)}
 
+/* Advanced challenges */
+.adv{display:inline-block;font-size:12px;font-weight:700;background:var(--sun);color:var(--ink);border:2px solid var(--ink);border-radius:999px;padding:0 8px;vertical-align:middle;margin-left:6px;font-family:var(--f-body);line-height:1.5}
+.frames{margin:0 0 14px}
+.frames .seg{margin-top:0}
+.animwrap{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:13px;color:var(--muted)}
+#animPrev{width:72px;height:72px;flex:none;image-rendering:pixelated;border:2px solid var(--ink);border-radius:4px;background:conic-gradient(#e9edf5 25%,#fff 0 50%,#e9edf5 0 75%,#fff 0) 0 0/12px 12px}
+.advbox{margin-top:22px;border:2px solid var(--ink);border-radius:8px;padding:14px 16px;background:var(--card)}
+.advbox h3{margin:0 0 4px}
+.stk-wrap{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);gap:16px;align-items:start;margin-top:8px}
+@media (max-width:640px){.stk-wrap{grid-template-columns:minmax(0,1fr)}}
+#stkCv{width:100%;max-width:240px;aspect-ratio:3/4;border:2px solid var(--ink);border-radius:4px;image-rendering:pixelated;cursor:crosshair;touch-action:none;display:block}
+.stks{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;max-width:330px}
+.stks button{aspect-ratio:1;border:2px solid var(--line);border-radius:6px;background:#d9e8f6;padding:3px;cursor:pointer;min-width:0;color:var(--ink)}
+.stks button img{width:100%;height:100%;image-rendering:pixelated;display:block}
+.stks button[aria-pressed="true"]{border-color:var(--ink);background:var(--cream);box-shadow:2px 2px 0 var(--ink)}
+.seq{display:grid;grid-template-columns:40px repeat(8,minmax(0,1fr));gap:4px;max-width:440px;margin-top:8px}
+.seq span{font-size:12px;color:var(--muted);display:grid;place-items:center;font-weight:700}
+.seq button{aspect-ratio:1;border:2px solid var(--line);border-radius:4px;background:var(--card);cursor:pointer;padding:0;min-width:0}
+.seq button.on{background:var(--tomato);border-color:var(--ink)}
+.seq button.beat{outline:3px solid var(--sun);outline-offset:0}
+.qrbox{display:flex;gap:16px;align-items:center;flex-wrap:wrap;border:3px solid var(--ink);border-radius:8px;padding:14px;background:var(--card);margin-top:16px}
+.qrbox .qr{background:#fff;padding:8px;border:1px solid var(--line);border-radius:6px;line-height:0;flex:none}
+.qrbox .qr img,.qrbox .qr canvas{width:180px!important;height:180px!important;image-rendering:pixelated}
+.qrbox p{margin:0 0 4px;font-size:14px}
+.qrbox .url{font-family:ui-monospace,Consolas,monospace;font-size:11px;word-break:break-all;color:var(--muted);max-height:4.6em;overflow:hidden}
+.stars{color:#b37a00;font-weight:900}
+.playpage{max-width:520px;margin:0 auto}
+.playpage .screen canvas{width:min(100%,calc(62vh * .75));margin:0 auto}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;font-weight:700;z-index:80;box-shadow:4px 4px 0 var(--sun);max-width:calc(100% - 32px)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -246,6 +274,7 @@ details.card summary{cursor:pointer;font-weight:900}
       <div class="pane" id="p-draw" hidden>
         <div class="pane-head"><h2>畫出你的三個角色</h2><p>每個角色是 12 × 12 格的像素畫。揀顏色，再點或拖過格子就可以填色。</p></div>
         <div class="slots" id="slots"></div>
+        <div class="frames row"><span class="lbl" style="margin:0">畫第幾格</span><div class="seg" id="frameSeg"></div><button class="btn sm" id="bCopyF">把第 1 格複製到第 2 格</button></div>
         <div class="editor">
           <canvas id="ed" width="288" height="288" aria-label="像素畫板"></canvas>
           <div>
@@ -263,6 +292,7 @@ details.card summary{cursor:pointer;font-weight:900}
               <button class="btn sm" id="bDefault">用回示範圖</button>
             </div>
             <p class="tipline">畫完可以馬上在右邊的遊戲機試玩。格仔畫得越清楚，角色在遊戲中越易認。</p>
+            <div class="animwrap"><canvas id="animPrev" width="72" height="72"></canvas><span><b class="stars">★ 進階挑戰：兩格動畫</b><br>再畫「第 2 格」，例如腳換位置或翅膀向下，角色在遊戲中就會兩格輪流顯示，好像在動。畫第 2 格時，第 1 格會淡淡地顯示作參考。</span></div>
           </div>
         </div>
       </div>
@@ -271,6 +301,7 @@ details.card summary{cursor:pointer;font-weight:900}
         <div class="pane-head"><h2>設定遊戲規則</h2><p>好玩的遊戲要「有挑戰但不會太難」。每改一樣，就試玩一次。</p></div>
         <div class="rules" id="rules"></div>
         <div class="tips" id="tips"></div>
+        <div class="advbox" id="powerBox"></div>
       </div>
 
       <div class="pane" id="p-look" hidden>
@@ -279,11 +310,32 @@ details.card summary{cursor:pointer;font-weight:900}
         <div class="field"><label class="lbl" for="iDesc">一句簡介（最多 30 個字）</label><input id="iDesc" maxlength="30"><div class="count" id="cDesc"></div></div>
         <div class="field"><span class="lbl">背景</span><div class="bgs" id="bgs"></div></div>
         <div class="field"><span class="lbl">音效</span><div class="seg" id="snd"></div></div>
+        <div class="field advbox">
+          <h3>背景貼紙 <span class="adv">★ 進階挑戰</span></h3>
+          <p class="muted small" style="margin:0">揀一個貼紙，再點左邊的畫面放上去。最後 4 個是你自己畫的角色。揀「移除」再點貼紙可以刪除。最多 12 個。</p>
+          <div class="stk-wrap">
+            <canvas id="stkCv" width="360" height="480" aria-label="背景貼紙畫面"></canvas>
+            <div>
+              <div class="stks" id="stks"></div>
+              <div class="seg" id="stkSize" style="margin-top:10px"></div>
+              <div class="toolrow"><button class="btn sm" id="bStkUndo">移除最後一個</button><button class="btn sm" id="bStkClr">清除所有貼紙</button></div>
+              <p class="muted small" id="stkCount"></p>
+            </div>
+          </div>
+        </div>
+        <div class="field advbox">
+          <h3>背景音樂 <span class="adv">★ 進階挑戰</span></h3>
+          <p class="muted small" style="margin:0">點格仔放音符，音樂會由左至右循環播放，遊戲開始時就會響。音效設為「關閉」時不會播。</p>
+          <div class="seq" id="seq"></div>
+          <div class="row" style="margin-top:10px"><div class="seg" id="tempoSeg" style="margin-top:0"></div><button class="btn sm" id="bListen">▶ 試聽</button><button class="btn sm" id="bSeqClr">清除音樂</button></div>
+        </div>
       </div>
 
       <div class="pane" id="p-submit" hidden>
         <div class="pane-head"><h2>提交作品</h2><p>完成清單後，複製作品碼交給老師。作品碼包含你整個遊戲。</p></div>
         <ul class="check" id="checklist"></ul>
+        <h3 style="margin:18px 0 0">進階挑戰 <span class="stars" id="starCount"></span></h3>
+        <ul class="check" id="advlist" style="margin-top:8px"></ul>
         <div class="cardprev" id="cardPrev"></div>
         <label class="lbl" for="codeBox">你的作品碼</label>
         <textarea id="codeBox" readonly rows="4"></textarea>
@@ -292,6 +344,10 @@ details.card summary{cursor:pointer;font-weight:900}
           <a id="bForm" class="btn go" target="_blank" rel="noopener" hidden>打開提交表格</a>
         </div>
         <p class="muted small">之後再修改遊戲，作品碼會自動更新，記得重新複製和提交。</p>
+        <div class="qrbox" id="homeQR" hidden>
+          <div class="qr" id="qrStu"></div>
+          <div style="min-width:0;flex:1"><p><b>帶回家玩</b></p><p class="muted">回家用手機掃描這個 QR 碼，就可以玩你的遊戲，也可以給家人玩。可以用手機先拍下這個 QR 碼。</p><p class="url" id="qrUrl"></p></div>
+        </div>
       </div>
     </section>
 
@@ -365,9 +421,9 @@ details.card summary{cursor:pointer;font-weight:900}
       <tr><th>5–10 分</th><td>登記班別學號。第 1 步揀遊戲：每款試玩一下再決定。</td></tr>
       <tr><th>10–19 分</th><td>第 2 步畫角色。示範畫板：揀顏色、畫筆、倒色桶、復原。提醒三個角色要一眼分得出。</td></tr>
       <tr><th>19–30 分</th><td>第 3 步定規則，邊改邊試玩。巡堂時問：「點樣令遊戲難少少但唔會即死？」</td></tr>
-      <tr><th>30–36 分</th><td>第 4 步改名、寫簡介、揀背景和音效。</td></tr>
+      <tr><th>30–36 分</th><td>第 4 步改名、寫簡介、揀背景和音效。做得快的同學挑戰 ★ 進階任務：兩格動畫、道具、背景貼紙、背景音樂（計入「挑戰達人獎」）。</td></tr>
       <tr><th>36–41 分</th><td>互相走位，試玩隔籬同學的遊戲，特別是揀了不同款的同學。</td></tr>
-      <tr><th>41–45 分</th><td>第 5 步複製作品碼並提交。老師挑兩三個作品上大螢幕展示，預告第三堂投票。</td></tr>
+      <tr><th>41–45 分</th><td>第 5 步複製作品碼並提交，用手機或 iPad 拍下「帶回家玩」QR 碼。老師挑兩三個作品上大螢幕展示，預告第三堂投票。</td></tr>
     </table></div>
   </details>
   <p class="foot"><a href="#">返回學生頁</a></p>
@@ -385,6 +441,22 @@ details.card summary{cursor:pointer;font-weight:900}
   <div class="gfilter seg" id="gFilter"></div>
   <div class="ggrid" id="gGrid"></div>
   <p class="foot"><a href="#teacher">老師返回控制台</a></p>
+</main>
+
+<!-- ============ 帶回家玩（QR 碼打開） ============ -->
+<main id="v-play" class="wrap" hidden>
+  <div class="playpage">
+    <div class="eyebrow">IT精英班 · 小小遊戲設計師作品</div>
+    <h2 class="big" id="pTitle" style="margin:4px 0"></h2>
+    <p class="muted" id="pBy" style="margin:0 0 14px"></p>
+    <div class="cabinet" style="position:static">
+      <div class="screen"><canvas id="cvP" tabindex="0" aria-label="遊戲畫面"></canvas></div>
+      <div class="cab-ctrl"><button id="pStart" class="btn primary">▶ 開始</button></div>
+      <p class="hint" id="pCtl"></p>
+    </div>
+    <p id="pDesc"></p>
+    <p class="msg" id="pErr" style="color:var(--tomato)"></p>
+  </div>
 </main>
 
 <!-- 登記 -->
@@ -415,13 +487,16 @@ details.card summary{cursor:pointer;font-weight:900}
     <div class="row">
       <button id="mStart" class="btn primary">▶ 開始</button>
       <button id="mVote" class="btn go" hidden>投票給這個遊戲</button>
+      <button id="mQRbtn" class="btn" hidden>QR 碼</button>
     </div>
+    <div class="qrbox" id="mQR" hidden><div class="qr" id="qrM"></div><p class="muted" style="flex:1;min-width:140px">用手機掃描就可以玩這個遊戲。可以截圖印在獎狀上。</p></div>
     <p class="msg" id="mMsg"></p>
   </div>
 </div>
 
 <div class="toast" id="toast" hidden></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 (() => {
 'use strict';
@@ -433,6 +508,7 @@ details.card summary{cursor:pointer;font-weight:900}
    留空就不會顯示「打開提交表格」按鈕。 */
 const FORM_URL = '';
 const GROUPS = 10;           // 第三堂組數
+const SITE_URL = 'https://edwardyungch.github.io/P6-ITElite/game/';   // 「帶回家玩」QR 碼用的網址
 
 /* ===== 調色板與示範角色 ===== */
 const PAL = [null,'#1b1b2f','#ffffff','#8a8f9e','#e63946','#ff8c42','#ffd23f','#6bd425','#1b998b','#3a86ff','#7b2cbf','#ff6fb5','#8d5524','#f1c27d','#a0e7e5','#2b2d42'];
@@ -453,8 +529,24 @@ const SP = {
   alien: parseSprite(['..a......a..','...a....a...','..aaaaaaaa..','.aa2aaaa2aa.','.aa1aaaa1aa.','aaaaaaaaaaaa','a.aaaaaaaa.a','a.a......a.a','...aa..aa...','............','............','............']),
   bullet:parseSprite(['............','............','.....66.....','....6666....','....6226....','....6226....','....6666....','....5555....','.....55.....','.....44.....','............','............']),
   car:   parseSprite(['............','............','...44444....','..4ee4ee4...','..4ee4ee44..','444444444444','444444444446','444444444444','.111....111.','.131....131.','.111....111.','............']),
-  chick: parseSprite(['....44......','...2222.....','..222212....','..2222255...','..22222.....','.2222222....','222222222...','222222222...','.2222222....','..22222.....','...5..5.....','..55.55.....'])
+  chick: parseSprite(['....44......','...2222.....','..222212....','..2222255...','..22222.....','.2222222....','222222222...','222222222...','.2222222....','..22222.....','...5..5.....','..55.55.....']),
+  gift:  parseSprite(['...44..44...','....4444....','.bbbb66bbbb.','.bbbb66bbbb.','.1111661111.','..bbb66bbb..','..bbb66bbb..','..bbb66bbb..','..bbb66bbb..','..bbb66bbb..','..11111111..','............'])
 };
+/* 背景貼紙 */
+const STK = [
+  parseSprite(['............','............','....2222....','..22222222..','.2222222222.','222222222222','222222222222','.2222222222.','............','............','............','............']),
+  parseSprite(['....7777....','..77777777..','.7777777777.','.7777887777.','777777777777','.7777777777.','..77777777..','....7777....','.....cc.....','.....cc.....','.....cc.....','....cccc....']),
+  parseSprite(['............','....b..b....','...bbbbbb...','....b66b....','...bb66bb...','....bbbb....','.....77.....','.7...77.....','..77.77..7..','....777.77..','.....7777...','......7.....']),
+  parseSprite(['............','.....6......','.....6......','....666.....','.666666666..','....666.....','.....6......','.....6......','..........6.','.........666','..........6.','............']),
+  parseSprite(['.....44.....','....4444....','...444444...','..44444444..','.4444444444.','..22222222..','..2ee22ee2..','..2ee22ee2..','..22222222..','..222cc222..','..222cc222..','..222cc222..']),
+  parseSprite(['....6666....','..666.......','.666........','.66.........','666.........','666.........','666.........','666.........','.66.........','.666........','..666.......','....6666....']),
+  parseSprite(['....4444....','..44244444..','.4442444244.','.4444444444.','442444444244','444444444444','....2222....','....2222....','....2212....','....2222....','....2222....','...222222...']),
+  parseSprite(['............','............','.....3......','....333.....','...33233....','...333333...','..33333333..','..33333333..','.3333333333.','333333333333','............','............'])
+];
+const STK_NAMES = ['雲','樹','花','星光','屋','月亮','蘑菇','石頭'];
+const POWER_SLOT = ['道具','★ 進階：接住有特別效果'];
+const FX = ['加一條命','無敵 5 秒','雙倍分數 6 秒'];
+const FX_SHORT = ['+1命','無敵','雙倍'];
 
 /* ===== 6 款遊戲 =====
    params：每款遊戲自己的 4–5 個設定；p 是預設值。生命、得分、變難、過關是共用設定。 */
@@ -485,7 +577,8 @@ const TYPES = [
     params:[{label:'車速',min:1,max:10,lo:'慢',hi:'快'},{label:'行車線數目',min:2,max:8,lo:'2 條',hi:'8 條',fmt:v => v + ' 條'},{label:'車輛數量',min:1,max:10,lo:'少',hi:'多'},{label:'金幣數量',min:0,max:9,lo:'沒有',hi:'多'}],
     p:[4,4,4,3,0], ptsLabel:'每次得分（過到對面或執金幣）', inv:1, bg:0, title:'小雞過馬路', desc:'避開車輛，安全走到對面！', spr:['chick','car','coin'] }
 ];
-const typeSprites = t => t.spr.map(k => SP[k].slice());
+const sprKeys = t => [...t.spr, 'gift'];
+const typeSprites = t => sprKeys(t).map(k => SP[k].slice());
 const BG_NAMES = ['晴天草地','星星夜空','海底世界','糖果王國','外太空','黃金沙漠'];
 const SOUND_NAMES = ['關閉','電子聲','可愛聲'];
 const RAMP_NAMES = ['不會變難','慢慢變難','很快變難'];
@@ -493,8 +586,20 @@ const GOALS = [0,30,50,100,200];
 const goalName = g => g ? g + ' 分過關' : '無限挑戰';
 function defaultDesign(type = 0){
   const t = TYPES[type];
-  return { type, cls:'', num:0, nick:'', title:t.title, desc:t.desc, p:t.p.slice(), lives:3, pts:1, ramp:1, goal:0, bg:t.bg, sound:1, sprites:typeSprites(t) };
+  return { type, cls:'', num:0, nick:'', title:t.title, desc:t.desc, p:t.p.slice(), lives:3, pts:1, ramp:1, goal:0, bg:t.bg, sound:1,
+    sprites:typeSprites(t), frames2:[null,null,null,null], pfx:0, pfreq:0, tempo:1, music:[0,0,0,0,0,0,0,0], stickers:[] };
 }
+const hasFrame = f => !!(f && f.some(v => v));
+/* 進階挑戰：完成了哪幾項 */
+function challenges(d){
+  return [
+    [d.frames2.some((f, i) => hasFrame(f) && !sameArr(f, d.sprites[i])), '兩格動畫：為角色畫第 2 格'],
+    [d.pfreq > 0 && !sameArr(d.sprites[3], SP.gift), '道具：畫自己的道具，並開啟出現機會'],
+    [d.music.some(v => v), '背景音樂：作一段音樂'],
+    [d.stickers.length >= 3, '背景貼紙：放最少 3 個貼紙']
+  ];
+}
+const starsOf = d => challenges(d).filter(c => c[0]).length;
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -516,30 +621,46 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, Math.round(Number(v) || 0)));
 function b64url(bytes){ let s = ''; for (const b of bytes) s += String.fromCharCode(b); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function fromB64url(str){ str = str.replace(/-/g,'+').replace(/_/g,'/'); while (str.length % 4) str += '='; const s = atob(str); const a = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return a; }
 function checksum(arr){ let s = 0; for (const x of arr) s = (s * 31 + x) % 65521; return s; }
+/* 像素圖用「顏色 + 連續格數」壓縮，令作品碼和 QR 碼更短 */
+function rle(a){ const out = []; let i = 0; while (i < 144){ const c = a[i]; let n = 1; while (i + n < 144 && a[i+n] === c && n < 16) n++; out.push((c << 4) | (n - 1)); i += n; } return out; }
+function unrle(bytes){ const a = []; for (const b of bytes){ const c = b >> 4, n = (b & 15) + 1; for (let k = 0; k < n; k++) a.push(c); } return a.length === 144 ? a : null; }
 function encode(d){
-  const out = [2, d.type, ...d.p.slice(0, 5), d.lives, d.pts, d.ramp, Math.round(d.goal/10), d.bg, d.sound, d.num & 255];
+  const out = [3, d.type, ...d.p.slice(0, 5), d.lives, d.pts, d.ramp, Math.round(d.goal/10), d.bg, d.sound, d.num & 255, d.pfx, d.pfreq, d.tempo, ...d.music.slice(0, 8)];
+  const stk = d.stickers.slice(0, 12); out.push(stk.length);
+  for (const s of stk) out.push((s.s & 15) | (s.big ? 128 : 0), clamp(s.x, 0, 90), clamp(s.y, 0, 120));
   const enc = new TextEncoder();
   for (const s of [d.cls, d.nick, d.title, d.desc]){ const b = enc.encode(s || ''); const n = Math.min(b.length, 200); out.push(n); for (let i = 0; i < n; i++) out.push(b[i]); }
-  for (const sp of d.sprites) for (let i = 0; i < 144; i += 2) out.push((sp[i] << 4) | sp[i+1]);
+  for (let k = 0; k < 4; k++){
+    const f1 = rle(d.sprites[k]); out.push(f1.length, ...f1);
+    const f2 = hasFrame(d.frames2[k]) ? rle(d.frames2[k]) : []; out.push(f2.length, ...f2);
+  }
   const c = checksum(out); out.push(c >> 8, c & 255);
-  return 'G2' + b64url(out);
+  return 'G3' + b64url(out);
 }
 function decode(code){
   try {
-    code = String(code).trim(); if (!code.startsWith('G2')) return null;
-    const all = fromB64url(code.slice(2)); if (all.length < 236) return null;
+    code = String(code).trim().replace(/^#/, ''); if (!code.startsWith('G3')) return null;
+    const all = fromB64url(code.slice(2)); if (all.length < 40) return null;
     const body = all.slice(0, all.length - 2), c = checksum(body);
     if ((c >> 8) !== all[all.length-2] || (c & 255) !== all[all.length-1]) return null;
-    let i = 0; if (body[i++] !== 2) return null;
+    let i = 0; if (body[i++] !== 3) return null;
     const d = {}; d.type = clamp(body[i++], 0, TYPES.length - 1);
     const t = TYPES[d.type];
     d.p = []; for (let k = 0; k < 5; k++){ const pr = t.params[k]; const v = body[i++]; d.p.push(pr ? clamp(v, pr.min, pr.max) : 0); }
     d.lives = clamp(body[i++],1,5); d.pts = clamp(body[i++],1,10); d.ramp = clamp(body[i++],0,2);
     d.goal = clamp(body[i++],0,255) * 10; d.bg = clamp(body[i++],0,5); d.sound = clamp(body[i++],0,2); d.num = body[i++];
+    d.pfx = clamp(body[i++],0,2); d.pfreq = clamp(body[i++],0,10); d.tempo = clamp(body[i++],0,2);
+    d.music = []; for (let k = 0; k < 8; k++) d.music.push(body[i++] & 31);
+    const ns = clamp(body[i++], 0, 12); d.stickers = [];
+    for (let k = 0; k < ns; k++){ const a = body[i++], x = body[i++], y = body[i++]; d.stickers.push({ s: clamp(a & 15, 0, 11), big: !!(a & 128), x: clamp(x, 0, 90), y: clamp(y, 0, 120) }); }
     const dec = new TextDecoder();
     for (const k of ['cls','nick','title','desc']){ const n = body[i++]; d[k] = dec.decode(body.slice(i, i+n)); i += n; }
-    d.sprites = [];
-    for (let s = 0; s < 3; s++){ const a = []; for (let j = 0; j < 72; j++){ const x = body[i++]; if (x === undefined) return null; a.push(x >> 4, x & 15); } d.sprites.push(a); }
+    d.sprites = []; d.frames2 = [];
+    for (let k = 0; k < 4; k++){
+      const n1 = body[i++]; const a = unrle(body.slice(i, i + n1)); i += n1; if (!a) return null; d.sprites.push(a);
+      const n2 = body[i++]; if (n2){ const b = unrle(body.slice(i, i + n2)); i += n2; if (!b) return null; d.frames2.push(b); } else d.frames2.push(null);
+    }
+    if (i !== body.length) return null;
     return d;
   } catch(e){ return null; }
 }
@@ -609,13 +730,52 @@ function typeThumb(t){
   return c.toDataURL();
 }
 
+let STKC = null;
+const stkCanvases = () => STKC || (STKC = STK.map(spriteCanvas));
+/* 背景 + 貼紙 */
+function sceneBG(d, own){
+  if (!d.stickers || !d.stickers.length) return renderBG(d.bg);
+  const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+  g.imageSmoothingEnabled = false; g.drawImage(renderBG(d.bg), 0, 0);
+  for (const s of d.stickers){ const img = s.s < 8 ? stkCanvases()[s.s] : own[s.s - 8]; if (!img) continue; const z = s.big ? 48 : 24; g.drawImage(img, s.x*4 - z/2, s.y*4 - z/2, z, z); }
+  return c;
+}
+
 /* ===== 音效 ===== */
 let AC = null;
+const audio = () => { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); return AC; };
+/* 背景音樂：8 拍 × 5 個音（La So Mi Re Do） */
+const NOTES = [880, 784, 659, 587, 523];
+const BPM = [100, 130, 160];
+function tone(f, t, len, type){
+  const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.05, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + len);
+  o.connect(g).connect(AC.destination); o.start(t); o.stop(t + len + .02);
+}
+const Music = {
+  timer:null, owner:null, step:0, next:0, d:null, onBeat:null,
+  start(owner, d){
+    if (!d.music || !d.music.some(v => v)) return;
+    try { audio(); } catch(e){ return; }
+    this.stop(); this.owner = owner; this.d = d; this.step = 0; this.next = AC.currentTime + .05;
+    this.timer = setInterval(() => this.tick(), 25);
+  },
+  tick(){
+    if (!this.owner || this.owner.shouldStop()){ this.stop(); return; }
+    const d = this.d, spb = 60 / BPM[d.tempo] / 2;
+    while (this.next < AC.currentTime + .12){
+      const mask = d.music[this.step];
+      for (let r = 0; r < 5; r++) if (mask >> r & 1) tone(NOTES[r], this.next, spb * .9, d.sound === 2 ? 'sine' : 'triangle');
+      if (this.onBeat){ const s = this.step, t = this.next; setTimeout(() => this.onBeat && this.onBeat(s), Math.max(0, (t - AC.currentTime) * 1000)); }
+      this.step = (this.step + 1) % 8; this.next += spb;
+    }
+  },
+  stop(){ clearInterval(this.timer); this.timer = null; const ob = this.onBeat; this.owner = null; this.onBeat = null; if (ob) ob(-1); }
+};
 function sfx(style, kind){
   if (!style) return;
   try {
-    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
-    if (AC.state === 'suspended') AC.resume();
+    audio();
     const t = AC.currentTime;
     const seq = { good:[[660,0],[990,.06]], bad:[[200,0],[120,.09]], over:[[440,0],[330,.13],[220,.26]], win:[[523,0],[659,.1],[784,.2],[1046,.3]], start:[[440,0],[660,.08]], jump:[[520,0]] }[kind];
     for (const [f, dt] of seq){
@@ -642,18 +802,18 @@ const MODS = {
     step(st, d, dt, m, c){
       const P = d.p; movePX(st, 120 + P[0]*40, dt);
       st.spawn -= dt;
-      if (st.spawn <= 0){ st.items.push({ x: IS/2 + Math.random()*(W-IS), y: -IS, bad: Math.random() < P[3]/10, v: (70 + P[1]*28) * (.85 + Math.random()*.3) }); st.spawn = Math.max(.22, 1.5 - P[2]*.12) / Math.sqrt(m); }
+      if (st.spawn <= 0){ const pw = c.pw(.012); st.items.push({ x: IS/2 + Math.random()*(W-IS), y: -IS, pw, bad: !pw && Math.random() < P[3]/10, v: (70 + P[1]*28) * (.85 + Math.random()*.3) }); st.spawn = Math.max(.22, 1.5 - P[2]*.12) / Math.sqrt(m); }
       const py = GROUND - PS;
       for (const it of st.items){
         it.y += it.v * m * dt;
         if (!it.hit && it.y + IS > py + 10 && it.y < py + PS - 6 && Math.abs(it.x - st.px) < (PS + IS)/2 - 12){
-          it.hit = true; if (it.bad) c.hurt(it.x, it.y + IS/2); else c.gain(it.x, it.y + IS/2, d.pts);
+          it.hit = true; if (it.pw) c.power(it.x, it.y); else if (it.bad) c.hurt(it.x, it.y + IS/2); else c.gain(it.x, it.y + IS/2, d.pts);
           if (st.state !== 'play') return;
         }
       }
       st.items = st.items.filter(it => !it.hit && it.y < H + 10);
     },
-    draw(g, st, d, s, show){ for (const it of st.items) g.drawImage(s[it.bad ? 2 : 1], it.x - IS/2, it.y, IS, IS); if (show) g.drawImage(s[0], st.px - PS/2, GROUND - PS, PS, PS); }
+    draw(g, st, d, s, show){ for (const it of st.items) g.drawImage(s[it.pw ? 3 : it.bad ? 2 : 1], it.x - IS/2, it.y, IS, IS); if (show) g.drawImage(s[0], st.px - PS/2, GROUND - PS, PS, PS); }
   },
   flappy: {
     PW: 52,
@@ -664,10 +824,10 @@ const MODS = {
       st.vy += (520 + P[0]*110) * dt; st.by += st.vy * dt;
       const sp = (90 + P[3]*14) * m, gh = 95 + P[2]*16;
       const last = st.pipes[st.pipes.length - 1];
-      if (!last || last.x < W - 230){ st.pipes.push({ x: W + 10, gy: 60 + Math.random() * (GROUND - 90 - gh), gh, coin: true }); }
+      if (!last || last.x < W - 230){ st.pipes.push({ x: W + 10, gy: 60 + Math.random() * (GROUND - 90 - gh), gh, coin: true, pw: c.pw(.02) }); }
       for (const p of st.pipes){
         p.x -= sp * dt;
-        if (p.coin && Math.hypot(p.x + PW/2 - st.bx, p.gy + p.gh/2 - st.by) < 30){ p.coin = false; c.gain(p.x + PW/2, p.gy + p.gh/2, d.pts); if (st.state !== 'play') return; }
+        if (p.coin && Math.hypot(p.x + PW/2 - st.bx, p.gy + p.gh/2 - st.by) < 30){ p.coin = false; if (p.pw) c.power(p.x + PW/2, p.gy + p.gh/2); else c.gain(p.x + PW/2, p.gy + p.gh/2, d.pts); if (st.state !== 'play') return; }
         if (st.inv <= 0 && st.bx + 15 > p.x && st.bx - 15 < p.x + PW && (st.by - 13 < p.gy || st.by + 13 > p.gy + p.gh)){ c.hurt(st.bx, st.by); if (st.state !== 'play') return; }
       }
       st.pipes = st.pipes.filter(p => p.x > -PW - 10);
@@ -680,7 +840,7 @@ const MODS = {
       for (const p of st.pipes){
         for (let y = p.gy - PW; y > -PW; y -= PW) g.drawImage(s[1], p.x, y, PW, PW);
         for (let y = p.gy + p.gh; y < GROUND; y += PW) g.drawImage(s[1], p.x, y, PW, PW);
-        if (p.coin) g.drawImage(s[2], p.x + PW/2 - 15, p.gy + p.gh/2 - 15, 30, 30);
+        if (p.coin) g.drawImage(s[p.pw ? 3 : 2], p.x + PW/2 - 15, p.gy + p.gh/2 - 15, 30, 30);
       }
       g.restore();
       if (show){ g.save(); g.translate(st.bx, st.by); g.rotate(Math.max(-.5, Math.min(.9, st.vy/700))); g.drawImage(s[0], -22, -22, 44, 44); g.restore(); }
@@ -696,7 +856,8 @@ const MODS = {
       st.spawn -= dt;
       if (st.spawn <= 0){
         st.obs.push({ x: W + 20 });
-        if (Math.random() < P[3]/10) st.coins.push({ x: W + 90 + Math.random()*60, y: GROUND - PS - 40 - Math.random()*60 });
+        if (c.pw(.03)) st.coins.push({ x: W + 90 + Math.random()*60, y: GROUND - PS - 40 - Math.random()*60, pw: true });
+        else if (Math.random() < P[3]/10) st.coins.push({ x: W + 90 + Math.random()*60, y: GROUND - PS - 40 - Math.random()*60 });
         st.spawn = Math.max(.55, 2.1 - P[2]*.14) * (.75 + Math.random()*.6) / Math.sqrt(m);
       }
       for (const o of st.obs){
@@ -705,13 +866,13 @@ const MODS = {
       }
       for (const k of st.coins){
         k.x -= sp * dt;
-        if (!k.got && Math.abs(k.x + CS/2 - (X + PS/2)) < 34 && Math.abs(k.y + CS/2 - (st.py + PS/2)) < 36){ k.got = true; c.gain(k.x + CS/2, k.y, d.pts); if (st.state !== 'play') return; }
+        if (!k.got && Math.abs(k.x + CS/2 - (X + PS/2)) < 34 && Math.abs(k.y + CS/2 - (st.py + PS/2)) < 36){ k.got = true; if (k.pw) c.power(k.x + CS/2, k.y); else c.gain(k.x + CS/2, k.y, d.pts); if (st.state !== 'play') return; }
       }
       st.obs = st.obs.filter(o => o.x > -50); st.coins = st.coins.filter(k => !k.got && k.x > -40);
     },
     draw(g, st, d, s, show){
       for (const o of st.obs) g.drawImage(s[1], o.x, GROUND - this.OS, this.OS, this.OS);
-      for (const k of st.coins) g.drawImage(s[2], k.x, k.y, this.CS, this.CS);
+      for (const k of st.coins) g.drawImage(s[k.pw ? 3 : 2], k.x, k.y, this.CS, this.CS);
       if (show) g.drawImage(s[0], this.X, st.py, PS, PS);
     }
   },
@@ -727,7 +888,7 @@ const MODS = {
       st.hx = x; st.hy = y; st.swing = .18;
       for (const h of st.holes){
         if (h.it && h.it.t > .06 && Math.abs(x - h.x) < 44 && y < h.y + 18 && y > h.y - 80){
-          const bad = h.it.bad; h.it = null; if (bad) c.hurt(h.x, h.y - 30); else c.gain(h.x, h.y - 30, d.pts); return;
+          const it = h.it; h.it = null; if (it.pw) c.power(h.x, h.y - 30); else if (it.bad) c.hurt(h.x, h.y - 30); else c.gain(h.x, h.y - 30, d.pts); return;
         }
       }
     },
@@ -738,7 +899,7 @@ const MODS = {
       st.spawn -= dt;
       if (st.spawn <= 0){
         const free = st.holes.filter(h => !h.it);
-        if (free.length){ const h = free[Math.floor(Math.random()*free.length)]; h.it = { bad: Math.random() < P[2]/10, t: 0, life: Math.max(.5, 2.1 - P[0]*.16) / Math.sqrt(m) }; }
+        if (free.length){ const h = free[Math.floor(Math.random()*free.length)]; const pw = c.pw(.015); h.it = { pw, bad: !pw && Math.random() < P[2]/10, t: 0, life: Math.max(.5, 2.1 - P[0]*.16) / Math.sqrt(m) }; }
         st.spawn = Math.max(.25, 1.3 - P[1]*.1) / Math.sqrt(m);
       }
       for (const h of st.holes) if (h.it){ h.it.t += dt; if (h.it.t > h.it.life) h.it = null; }
@@ -750,7 +911,7 @@ const MODS = {
         if (h.it){
           const t = h.it.t, l = h.it.life, rise = Math.max(0, Math.min(1, t/.12, (l - t)/.12));
           g.save(); g.beginPath(); g.rect(h.x - 45, h.y - SZ - 10, 90, SZ + 10); g.clip();
-          g.drawImage(s[h.it.bad ? 1 : 0], h.x - SZ/2, h.y - SZ*rise, SZ, SZ); g.restore();
+          g.drawImage(s[h.it.pw ? 3 : h.it.bad ? 1 : 0], h.x - SZ/2, h.y - SZ*rise, SZ, SZ); g.restore();
         }
         g.fillStyle = '#5a3a22'; g.beginPath(); g.ellipse(h.x, h.y + 4, 42, 8, 0, 0, Math.PI); g.fill();
       }
@@ -758,14 +919,16 @@ const MODS = {
     }
   },
   shooter: {
-    reset(st){ st.px = W/2; st.en = []; st.bul = []; st.spawn = .8; st.fire = .3; },
+    reset(st){ st.px = W/2; st.en = []; st.bul = []; st.pws = []; st.spawn = .8; st.fire = .3; },
     step(st, d, dt, m, c){
       const P = d.p; movePX(st, 120 + P[0]*40, dt);
       st.fire -= dt; if (st.fire <= 0){ st.bul.push({ x: st.px, y: GROUND - PS - 6 }); st.fire = 1 / (1 + P[3]*.45); }
       for (const b of st.bul) b.y -= 480 * dt;
       st.bul = st.bul.filter(b => b.y > -30 && !b.hit);
       st.spawn -= dt;
-      if (st.spawn <= 0){ st.en.push({ x: 30 + Math.random()*(W - 60), y: -36, v: (35 + P[1]*15) * (.85 + Math.random()*.3), ph: Math.random()*6 }); st.spawn = Math.max(.3, 1.7 - P[2]*.13) / Math.sqrt(m); }
+      if (st.spawn <= 0){ st.en.push({ x: 30 + Math.random()*(W - 60), y: -36, v: (35 + P[1]*15) * (.85 + Math.random()*.3), ph: Math.random()*6 }); st.spawn = Math.max(.3, 1.7 - P[2]*.13) / Math.sqrt(m); if (c.pw(.015)) st.pws.push({ x: 30 + Math.random()*(W - 60), y: -30 }); }
+      for (const q of st.pws){ q.y += 90 * dt; if (!q.got && q.y + 30 > GROUND - PS + 6 && q.y < GROUND && Math.abs(q.x - st.px) < 36){ q.got = true; c.power(q.x, q.y); } }
+      st.pws = st.pws.filter(q => !q.got && q.y < H);
       for (const e of st.en){
         e.y += e.v * m * dt; e.x += Math.sin(st.t*2 + e.ph) * 40 * dt; e.x = Math.max(18, Math.min(W - 18, e.x));
         for (const b of st.bul){ if (!b.hit && Math.abs(b.x - e.x) < 22 && Math.abs(b.y - (e.y + 18)) < 22){ b.hit = true; e.dead = true; c.gain(e.x, e.y + 18, d.pts); break; } }
@@ -779,6 +942,7 @@ const MODS = {
     draw(g, st, d, s, show){
       for (const b of st.bul) if (!b.hit) g.drawImage(s[2], b.x - 11, b.y - 11, 22, 22);
       for (const e of st.en) g.drawImage(s[1], e.x - 18, e.y, 36, 36);
+      for (const q of st.pws) g.drawImage(s[3], q.x - 15, q.y, 30, 30);
       if (show) g.drawImage(s[0], st.px - PS/2, GROUND - PS, PS, PS);
     }
   },
@@ -801,8 +965,9 @@ const MODS = {
       for (const car of st.cars){ const ln = st.lanes.find(l => l.row === car.row); car.x += car.dir * base * (ln ? ln.f : 1) * dt; }
       st.cars = st.cars.filter(car => car.x > -60 && car.x < W + 60);
       const want = Math.ceil(P[3]/3);
-      if (st.coins.length < want && st.lanes.length && Math.random() < dt){ const ln = st.lanes[Math.floor(Math.random()*st.lanes.length)]; st.coins.push({ row: ln.row, x: 20 + Math.floor(Math.random()*9)*40 }); }
-      for (const k of st.coins) if (k.row === st.row && Math.abs(k.x - st.cx) < 22){ k.got = true; c.gain(k.x, k.row*RH, d.pts); if (st.state !== 'play') return; }
+      if (st.coins.filter(k => !k.pw).length < want && st.lanes.length && Math.random() < dt){ const ln = st.lanes[Math.floor(Math.random()*st.lanes.length)]; st.coins.push({ row: ln.row, x: 20 + Math.floor(Math.random()*9)*40 }); }
+      if (st.lanes.length && !st.coins.some(k => k.pw) && c.pw(dt * .01)){ const ln = st.lanes[Math.floor(Math.random()*st.lanes.length)]; st.coins.push({ row: ln.row, x: 20 + Math.floor(Math.random()*9)*40, pw: true }); }
+      for (const k of st.coins) if (k.row === st.row && Math.abs(k.x - st.cx) < 22){ k.got = true; if (k.pw) c.power(k.x, k.row*RH); else c.gain(k.x, k.row*RH, d.pts); if (st.state !== 'play') return; }
       st.coins = st.coins.filter(k => !k.got);
       if (st.inv <= 0) for (const car of st.cars){
         if (car.row === st.row && st.cx + 14 > car.x + 3 && st.cx - 14 < car.x + 37){ c.hurt(st.cx, st.row*RH + 20); st.row = 11; return; }
@@ -813,7 +978,7 @@ const MODS = {
       g.fillStyle = 'rgba(255,255,255,.4)'; g.fillRect(0, RH, W, RH);
       g.fillStyle = '#1b1b2f'; g.font = '16px "DotGothic16", monospace'; g.textAlign = 'center'; g.fillText('終點', W/2, RH + 26);
       for (const ln of st.lanes){ const y = ln.row*RH; g.fillStyle = '#3b3f4a'; g.fillRect(0, y, W, RH); g.fillStyle = '#d9dde6'; for (let x = 0; x < W; x += 28) g.fillRect(x, y + RH - 2, 14, 2); }
-      for (const k of st.coins) g.drawImage(s[2], k.x - 13, k.row*RH + 7, 26, 26);
+      for (const k of st.coins) g.drawImage(s[k.pw ? 3 : 2], k.x - 13, k.row*RH + 7, 26, 26);
       for (const car of st.cars){
         const y = car.row*RH + 2;
         if (car.dir < 0){ g.save(); g.translate(car.x + 40, y); g.scale(-1, 1); g.drawImage(s[1], 0, 0, 40, 36); g.restore(); }
@@ -830,19 +995,20 @@ let activeGame = null;
 function Game(canvas, getD, hooks = {}){
   canvas.width = W; canvas.height = H;
   const g = canvas.getContext('2d');
-  let d = getD(), spr = [], sprKey = '', bgc = null, curType = -1;
-  const st = { state:'ready', score:0, lives:3, t:0, fl:[], parts:[], shake:0, inv:0, blink:0, dir:0, target:null, msg:'' };
+  let d = getD(), spr = [], sprKey = '', bgc = null, bgKey = '', curType = -1;
+  const st = { state:'ready', score:0, lives:3, t:0, fl:[], parts:[], shake:0, inv:0, shield:0, double:0, blink:0, dir:0, target:null, msg:'' };
   const T = () => TYPES[d.type] || TYPES[0];
   const M = () => MODS[T().id];
   function setup(){
-    Object.assign(st, { score:0, lives:d.lives, t:0, fl:[], parts:[], shake:0, inv:0, dir:0, target:null, msg:'' });
+    Object.assign(st, { score:0, lives:d.lives, t:0, fl:[], parts:[], shake:0, inv:0, shield:0, double:0, dir:0, target:null, msg:'' });
     M().reset(st, d);
   }
   function refresh(){
     d = getD(); if (!d) return;
-    const k = d.sprites.map(s => s.join('')).join('|');
-    if (k !== sprKey){ sprKey = k; spr = d.sprites.map(spriteCanvas); }
-    bgc = renderBG(d.bg);
+    const k = d.sprites.map(s => s.join('')).join('|') + '/' + d.frames2.map(f => hasFrame(f) ? f.join('') : '').join('|');
+    if (k !== sprKey){ sprKey = k; spr = d.sprites.map((s, i) => [spriteCanvas(s), hasFrame(d.frames2[i]) ? spriteCanvas(d.frames2[i]) : null]); bgKey = ''; }
+    const bk = d.bg + '|' + JSON.stringify(d.stickers);
+    if (bk !== bgKey){ bgKey = bk; bgc = sceneBG(d, spr.map(p => p[0])); }
     if (d.type !== curType){ curType = d.type; st.state = 'ready'; setup(); }
   }
   function reset(){ refresh(); setup(); st.state = 'ready'; }
@@ -851,17 +1017,26 @@ function Game(canvas, getD, hooks = {}){
     try { canvas.focus({ preventScroll: true }); } catch(e){}
     if (st.state === 'play') return;
     setup(); st.state = 'play'; sfx(d.sound, 'start'); hooks.onStart && hooks.onStart();
+    if (d.sound) Music.start({ shouldStop: () => st.state !== 'play' || !api.visible() }, d);
   }
   function end(win){ if (st.state !== 'play') return; st.state = win ? 'win' : 'over'; st.target = null; sfx(d.sound, win ? 'win' : 'over'); hooks.onEnd && hooks.onEnd(st.score, win); }
   function burst(x, y, col){ for (let k = 0; k < 10; k++) st.parts.push({ x, y, vx:(Math.random()-.5)*260, vy:-Math.random()*240, life:.55, c:col }); }
   const ctx = {
-    gain(x, y, n){ if (st.state !== 'play') return; st.score += n; burst(x, y, '#ffd23f'); sfx(d.sound, 'good'); st.fl.push({ x, y, txt:'+' + n, c:'#ffffff', t:0 }); if (d.goal > 0 && st.score >= d.goal) end(true); },
-    hurt(x, y){ if (st.inv > 0 || st.state !== 'play') return; st.lives--; st.shake = .3; st.inv = T().inv; burst(x, y, '#e63946'); sfx(d.sound, 'bad'); st.fl.push({ x, y, txt:'−1 命', c:'#ff4d6d', t:0 }); if (st.lives <= 0) end(false); },
+    gain(x, y, n){ if (st.state !== 'play') return; if (st.double > 0) n *= 2; st.score += n; burst(x, y, '#ffd23f'); sfx(d.sound, 'good'); st.fl.push({ x, y, txt:'+' + n, c:'#ffffff', t:0 }); if (d.goal > 0 && st.score >= d.goal) end(true); },
+    pw: k => d.pfreq > 0 && Math.random() < d.pfreq * k,
+    power(x, y){
+      if (st.state !== 'play') return; burst(x, y, '#7fe3c9'); sfx(d.sound, 'win');
+      if (d.pfx === 0){ st.lives = Math.min(5, st.lives + 1); st.fl.push({ x, y, txt:'+1 命', c:'#7fe3c9', t:0 }); }
+      else if (d.pfx === 1){ st.shield = 5; st.fl.push({ x, y, txt:'無敵！', c:'#ffd23f', t:0 }); }
+      else { st.double = 6; st.fl.push({ x, y, txt:'雙倍分數！', c:'#ffd23f', t:0 }); }
+    },
+    hurt(x, y){ if (st.inv > 0 || st.shield > 0 || st.state !== 'play') return; st.lives--; st.shake = .3; st.inv = T().inv; burst(x, y, '#e63946'); sfx(d.sound, 'bad'); st.fl.push({ x, y, txt:'−1 命', c:'#ff4d6d', t:0 }); if (st.lives <= 0) end(false); },
     end
   };
   function update(dt){
     refresh(); if (!d) return;
     st.blink += dt; st.shake = Math.max(0, st.shake - dt); st.inv = Math.max(0, st.inv - dt);
+    if (st.state === 'play'){ st.shield = Math.max(0, st.shield - dt); st.double = Math.max(0, st.double - dt); }
     for (const p of st.parts){ p.x += p.vx*dt; p.y += p.vy*dt; p.vy += 620*dt; p.life -= dt; }
     st.parts = st.parts.filter(p => p.life > 0);
     for (const f of st.fl){ f.y -= 44*dt; f.t += dt; }
@@ -882,7 +1057,9 @@ function Game(canvas, getD, hooks = {}){
     if (st.shake > 0) g.translate((Math.random()-.5)*8, (Math.random()-.5)*8);
     g.drawImage(bgc, 0, 0);
     const show = st.state !== 'ready' && !(st.inv > 0 && Math.floor(st.blink * 12) % 2);
-    M().draw(g, st, d, spr, show);
+    const fr = Math.floor(st.blink * 4) % 2;
+    const frm = spr.map(p => (fr && p[1]) ? p[1] : p[0]);
+    M().draw(g, st, d, frm, show);
     for (const p of st.parts){ g.fillStyle = p.c; g.fillRect(p.x, p.y, 4, 4); }
     g.textAlign = 'center';
     for (const f of st.fl){ g.font = '20px "DotGothic16", monospace'; g.lineWidth = 4; g.strokeStyle = 'rgba(0,0,0,.6)'; g.strokeText(f.txt, f.x, f.y); g.fillStyle = f.c; g.fillText(f.txt, f.x, f.y); }
@@ -893,7 +1070,12 @@ function Game(canvas, getD, hooks = {}){
     g.fillText('分數 ' + st.score + (d.goal ? ' / ' + d.goal : ''), 10, 24);
     if (t.id === 'mole'){ g.textAlign = 'center'; g.fillStyle = st.state === 'play' && st.left < 6 ? '#ff6b6b' : '#ffd23f'; g.fillText('時間 ' + Math.ceil(st.state === 'ready' ? d.p[4]*10 : st.left), W/2 + 20, 24); }
     const lv = st.state === 'ready' ? d.lives : st.lives;
-    for (let k = 0; k < d.lives; k++) heart(g, W - 28 - k*26, 9, k < lv ? '#ff4d6d' : '#4a4f66');
+    for (let k = 0; k < Math.max(d.lives, lv); k++) heart(g, W - 28 - k*26, 9, k < lv ? '#ff4d6d' : '#4a4f66');
+    if (st.state === 'play' && (st.shield > 0 || st.double > 0)){
+      g.font = '15px "DotGothic16", monospace'; g.textAlign = 'left'; g.fillStyle = '#ffd23f';
+      g.fillText([st.shield > 0 ? '無敵 ' + Math.ceil(st.shield) : '', st.double > 0 ? '雙倍 ' + Math.ceil(st.double) : ''].filter(Boolean).join('　'), 10, 54);
+      if (st.shield > 0){ g.strokeStyle = `rgba(255,210,63,${.45 + .35*Math.sin(st.blink*10)})`; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, H - 8); }
+    }
     // Overlays
     const blinkOn = Math.floor(st.blink * 2) % 2 === 0;
     if (st.state === 'ready'){
@@ -906,9 +1088,10 @@ function Game(canvas, getD, hooks = {}){
       dl.forEach((ln, i) => center(ln, 112 + tl.length*32 + 2 + i*22, 16, '#ffffff'));
       const yy = 266;
       g.imageSmoothingEnabled = false;
-      for (let k = 0; k < 3; k++){
-        const x = W/2 - 100 + k*100; g.drawImage(spr[k], x - 20, yy - 44, 40, 40);
-        g.font = '14px "DotGothic16", monospace'; g.textAlign = 'center'; g.fillStyle = '#c9d2ea'; g.fillText(t.short[k], x, yy + 14);
+      const nShow = d.pfreq > 0 ? 4 : 3, gap = nShow === 4 ? 76 : 100;
+      for (let k = 0; k < nShow; k++){
+        const x = W/2 - gap*(nShow - 1)/2 + k*gap; g.drawImage(frm[k], x - 20, yy - 44, 40, 40);
+        g.font = '14px "DotGothic16", monospace'; g.textAlign = 'center'; g.fillStyle = '#c9d2ea'; g.fillText(k < 3 ? t.short[k] : FX_SHORT[d.pfx], x, yy + 14);
       }
       center('電腦：' + t.key, 316, 14, '#c9d2ea');
       center('iPad：' + t.touch, 338, 14, '#c9d2ea');
@@ -974,15 +1157,20 @@ function loop(ts){
 
 /* ===== 學生頁 ===== */
 let draft = S.get('gd-draft', null);
-if (!draft || !draft.d || !Array.isArray(draft.d.sprites) || draft.d.sprites.length !== 3) draft = { d: defaultDesign(0), plays: 0, best: 0 };
+if (!draft || !draft.d || !Array.isArray(draft.d.sprites) || draft.d.sprites.length < 3) draft = { d: defaultDesign(0), plays: 0, best: 0 };
 if (!Array.isArray(draft.d.p)){ const o = draft.d; draft.d = Object.assign(defaultDesign(0), { cls:o.cls, num:o.num, nick:o.nick, title:o.title, desc:o.desc, sprites:o.sprites, bg:o.bg ?? 0 }); }
 draft.d = Object.assign(defaultDesign(draft.d.type || 0), draft.d);
+if (draft.d.sprites.length === 3) draft.d.sprites.push(SP.gift.slice());
+if (!Array.isArray(draft.d.frames2) || draft.d.frames2.length !== 4) draft.d.frames2 = [null,null,null,null];
+if (!Array.isArray(draft.d.music) || draft.d.music.length !== 8) draft.d.music = [0,0,0,0,0,0,0,0];
+if (!Array.isArray(draft.d.stickers)) draft.d.stickers = [];
 const D = () => draft.d;
 const TT = () => TYPES[D().type];
 let draftT; function saveDraft(){ clearTimeout(draftT); draftT = setTimeout(() => S.set('gd-draft', draft), 250); }
 
 function renderWho(){
   const d = D(), el = $('#who');
+  if (view === 'play'){ el.innerHTML = ''; return; }
   if (view !== 'student'){ el.innerHTML = view === 'teacher' ? '<span class="chip">老師模式</span>' : '<span class="chip">展覽館</span>'; return; }
   if (!d.cls){ el.innerHTML = ''; return; }
   el.innerHTML = `<span class="chip">${esc(d.cls)} · ${d.num} 號${d.nick ? ' · ' + esc(d.nick) : ''}</span><button class="linkbtn" id="bEditReg">修改</button>`;
@@ -1004,6 +1192,8 @@ document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () =>
   document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x === t ? 'true' : 'false'));
   PANES.forEach(n => $('#p-' + n).hidden = n !== t.dataset.tab);
   if (t.dataset.tab === 'submit') renderSubmit();
+  if (t.dataset.tab === 'look') renderStickers();
+  if (t.dataset.tab === 'draw') renderFrames();
 }));
 
 // Step 1: game type
@@ -1015,29 +1205,32 @@ function renderTypes(){
 function selectType(i){
   const d = D(); if (d.type === i){ G1.start(); return; }
   const old = TYPES[d.type], nt = TYPES[i];
-  const untouched = d.sprites.every((s, k) => sameArr(s, SP[old.spr[k]]));
+  const untouched = d.sprites.slice(0, 3).every((s, k) => sameArr(s, SP[old.spr[k]]));
   d.type = i; d.p = nt.p.slice();
-  if (untouched) d.sprites = typeSprites(nt);
+  if (untouched){ const keep = d.sprites[3]; d.sprites = typeSprites(nt); d.sprites[3] = keep; d.frames2 = [null, null, null, d.frames2[3]]; }
   if (d.title === old.title || !d.title.trim()) d.title = nt.title;
   if (d.desc === old.desc || !d.desc.trim()) d.desc = nt.desc;
   if (d.bg === old.bg) d.bg = nt.bg;
-  undo.length = 0; curSlot = 0;
-  renderTypes(); renderSlots(); drawEditor(); buildRules(); syncRules(); syncLook(); renderHint(); saveDraft();
+  undo.length = 0; curSlot = 0; curFrame = 0;
+  renderTypes(); renderSlots(); renderFrames(); drawEditor(); buildRules(); syncRules(); syncLook(); renderHint(); saveDraft();
   G1.reset(); activeGame = G1;
   toast(untouched ? `已轉為「${nt.name}」，按右邊試玩看看` : `已轉為「${nt.name}」。你畫的角色保留了，想用示範圖可以按「用回示範圖」。`);
 }
 function renderHint(){ const t = TT(); $('#cabHint').innerHTML = `電腦：${esc(t.key)}，空白鍵開始。<br>iPad：${esc(t.touch)}。`; }
 
 // Step 2: pixel editor
-let curSlot = 0, curColor = 1, tool = 'pen', painting = false;
+let curSlot = 0, curFrame = 0, curColor = 1, tool = 'pen', painting = false;
 const undo = [];
 const ed = $('#ed'), eg = ed.getContext('2d'), CELL = 24;
+const curArr = () => { const d = D(); if (curFrame === 0) return d.sprites[curSlot]; if (!d.frames2[curSlot]) d.frames2[curSlot] = new Array(144).fill(0); return d.frames2[curSlot]; };
+const setArr = a => { if (curFrame === 0) D().sprites[curSlot] = a; else D().frames2[curSlot] = a; };
 function drawEditor(){
-  const sp = D().sprites[curSlot];
+  const sp = curArr(), ghost = curFrame === 1 ? D().sprites[curSlot] : null;
   for (let i = 0; i < 144; i++){
     const x = i % N, y = (i / N) | 0;
     eg.fillStyle = sp[i] ? PAL[sp[i]] : ((x + y) % 2 ? '#eef1f7' : '#ffffff');
     eg.fillRect(x*CELL, y*CELL, CELL, CELL);
+    if (!sp[i] && ghost && ghost[i]){ eg.globalAlpha = .22; eg.fillStyle = PAL[ghost[i]]; eg.fillRect(x*CELL, y*CELL, CELL, CELL); eg.globalAlpha = 1; }
   }
   eg.strokeStyle = 'rgba(24,32,55,.16)'; eg.lineWidth = 1; eg.beginPath();
   for (let k = 1; k < N; k++){ eg.moveTo(k*CELL + .5, 0); eg.lineTo(k*CELL + .5, 288); eg.moveTo(0, k*CELL + .5); eg.lineTo(288, k*CELL + .5); }
@@ -1045,21 +1238,35 @@ function drawEditor(){
   eg.strokeStyle = 'rgba(232,71,58,.35)'; eg.beginPath(); eg.moveTo(144.5, 0); eg.lineTo(144.5, 288); eg.stroke();
 }
 function renderSlots(){
-  const sl = TT().slots;
-  $('#slots').innerHTML = sl.map((s, i) => `<button class="slot" data-i="${i}" aria-pressed="${i === curSlot}"><img alt="" src="${spriteURL(D().sprites[i], 4)}"><span><b>${s[0]}</b><small>${s[1]}</small></span></button>`).join('');
+  const sl = [...TT().slots, POWER_SLOT];
+  $('#slots').innerHTML = sl.map((s, i) => `<button class="slot" data-i="${i}" aria-pressed="${i === curSlot}"><img alt="" src="${spriteURL(D().sprites[i], 4)}"><span><b>${s[0]}${hasFrame(D().frames2[i]) ? ' <span class="stars">★</span>' : ''}</b><small>${s[1]}</small></span></button>`).join('');
   document.querySelectorAll('.slot').forEach(b => b.onclick = () => { curSlot = +b.dataset.i; renderSlots(); drawEditor(); });
 }
+function renderFrames(){
+  const el = $('#frameSeg');
+  el.innerHTML = [[0, '第 1 格'], [1, '第 2 格（動畫）']].map(([v, n]) => `<button type="button" data-v="${v}" aria-pressed="${curFrame === v}">${n}</button>`).join('');
+  el.querySelectorAll('button').forEach(b => b.onclick = () => { curFrame = +b.dataset.v; renderFrames(); drawEditor(); });
+}
+$('#bCopyF').onclick = () => { curFrame = 1; pushUndo(); D().frames2[curSlot] = D().sprites[curSlot].slice(); renderFrames(); drawEditor(); commitArt(); toast('已複製到第 2 格，改動少少就有動畫效果'); };
+const animC = $('#animPrev').getContext('2d');
+let animTick = 0;
+setInterval(() => {
+  if ($('#p-draw').hidden) return;
+  animTick ^= 1; const d = D(); const f2 = d.frames2[curSlot];
+  const sp = animTick && hasFrame(f2) ? f2 : d.sprites[curSlot];
+  animC.clearRect(0, 0, 72, 72); animC.imageSmoothingEnabled = false; animC.drawImage(spriteCanvas(sp), 0, 0, 72, 72);
+}, 260);
 function renderPal(){
   $('#pal').innerHTML = PAL.map((c, i) => `<button class="sw${i ? '' : ' clear'}" data-i="${i}" aria-pressed="${i === curColor}" aria-label="${i ? '顏色 ' + i : '透明'}" style="${c ? 'background:' + c : ''}"></button>`).join('');
   document.querySelectorAll('.sw').forEach(b => b.onclick = () => { curColor = +b.dataset.i; if (tool === 'erase') setTool('pen'); renderPal(); });
 }
 function setTool(t){ tool = t; document.querySelectorAll('.tool').forEach(b => b.setAttribute('aria-pressed', b.dataset.tool === t)); }
 document.querySelectorAll('.tool').forEach(b => b.onclick = () => setTool(b.dataset.tool));
-function pushUndo(){ undo.push({ s: curSlot, a: D().sprites[curSlot].slice() }); if (undo.length > 40) undo.shift(); }
+function pushUndo(){ undo.push({ s: curSlot, f: curFrame, a: curArr().slice() }); if (undo.length > 40) undo.shift(); }
 function cellAt(e){ const r = ed.getBoundingClientRect(); const x = Math.floor((e.clientX - r.left) / r.width * N), y = Math.floor((e.clientY - r.top) / r.height * N); return (x < 0 || y < 0 || x >= N || y >= N) ? -1 : y * N + x; }
-function paint(i){ const sp = D().sprites[curSlot]; const v = tool === 'erase' ? 0 : curColor; if (sp[i] !== v){ sp[i] = v; drawEditor(); } }
+function paint(i){ const sp = curArr(); const v = tool === 'erase' ? 0 : curColor; if (sp[i] !== v){ sp[i] = v; drawEditor(); } }
 function flood(i){
-  const sp = D().sprites[curSlot], from = sp[i], to = curColor; if (from === to) return;
+  const sp = curArr(), from = sp[i], to = curColor; if (from === to) return;
   const q = [i]; while (q.length){ const k = q.pop(); if (sp[k] !== from) continue; sp[k] = to; const x = k % N, y = (k / N) | 0;
     if (x > 0) q.push(k-1); if (x < N-1) q.push(k+1); if (y > 0) q.push(k-N); if (y < N-1) q.push(k+N); }
   drawEditor();
@@ -1074,10 +1281,10 @@ ed.addEventListener('pointerdown', e => {
 });
 ed.addEventListener('pointermove', e => { if (!painting) return; const i = cellAt(e); if (i >= 0) paint(i); });
 ['pointerup','pointercancel'].forEach(t => ed.addEventListener(t, () => { if (painting){ painting = false; commitArt(); } }));
-$('#bUndo').onclick = () => { const u = undo.pop(); if (!u){ toast('沒有可以復原的步驟'); return; } D().sprites[u.s] = u.a; curSlot = u.s; drawEditor(); commitArt(); };
-$('#bFlip').onclick = () => { pushUndo(); const sp = D().sprites[curSlot], n = []; for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) n.push(sp[y*N + (N-1-x)]); D().sprites[curSlot] = n; drawEditor(); commitArt(); };
-$('#bClear').onclick = () => { pushUndo(); D().sprites[curSlot] = new Array(144).fill(0); drawEditor(); commitArt(); toast('已清空，按「復原一步」可以還原'); };
-$('#bDefault').onclick = () => { pushUndo(); D().sprites[curSlot] = SP[TT().spr[curSlot]].slice(); drawEditor(); commitArt(); };
+$('#bUndo').onclick = () => { const u = undo.pop(); if (!u){ toast('沒有可以復原的步驟'); return; } curSlot = u.s; curFrame = u.f; setArr(u.a); renderFrames(); drawEditor(); commitArt(); };
+$('#bFlip').onclick = () => { pushUndo(); const sp = curArr(), n = []; for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) n.push(sp[y*N + (N-1-x)]); setArr(n); drawEditor(); commitArt(); };
+$('#bClear').onclick = () => { pushUndo(); setArr(new Array(144).fill(0)); drawEditor(); commitArt(); toast('已清空，按「復原一步」可以還原'); };
+$('#bDefault').onclick = () => { pushUndo(); setArr(curFrame === 0 ? SP[sprKeys(TT())[curSlot]].slice() : new Array(144).fill(0)); drawEditor(); commitArt(); };
 
 // Step 3: rules
 function ruleDefs(){
@@ -1154,6 +1361,19 @@ function syncRules(){
     : `<b>設計師小提示</b>看起來很平衡！記得自己試玩，再請隔籬同學玩一次，看看他們覺得難不難。`;
 }
 
+function renderPower(){
+  const d = D();
+  $('#powerBox').innerHTML = `<h3>道具 <span class="adv">★ 進階挑戰</span></h3>
+    <p class="muted small" style="margin:0">先在「畫角色」畫好第 4 個角色「道具」，再在這裏揀效果和出現機會。出現機會設為「沒有」，遊戲就不會出道具。</p>
+    <div class="rules" style="margin-top:12px">
+      <div class="rule"><div class="top"><span>道具效果</span></div><div class="seg" id="segFx"></div></div>
+      <div class="rule"><div class="top"><label for="r-pw">道具出現機會</label><output id="o-pw"></output></div><input type="range" id="r-pw" min="0" max="10" step="1" value="${d.pfreq}"><div class="ends"><span>沒有</span><span>經常</span></div></div>
+    </div>`;
+  seg('#segFx', FX.map((n, i) => [i, n]), () => D().pfx, v => D().pfx = v);
+  $('#o-pw').textContent = d.pfreq || '沒有';
+  $('#r-pw').oninput = e => { D().pfreq = +e.target.value; $('#o-pw').textContent = D().pfreq || '沒有'; saveDraft(); };
+}
+
 // Step 4: look
 const bgThumbs = BG_NAMES.map((_, i) => { const c = document.createElement('canvas'); c.width = 90; c.height = 120; c.getContext('2d').drawImage(renderBG(i), 0, 0, 90, 120); return c.toDataURL(); });
 function renderBgs(){
@@ -1166,10 +1386,65 @@ $('#iTitle').addEventListener('input', e => { D().title = e.target.value; cnt();
 $('#iDesc').addEventListener('input', e => { D().desc = e.target.value; cnt(); saveDraft(); });
 seg('#snd', SOUND_NAMES.map((n, i) => [i, n]), () => D().sound, v => { D().sound = v; sfx(v, 'good'); });
 
+// 背景貼紙
+let stkSel = 0, stkBig = 0;
+const stkCv = $('#stkCv'), stkG = stkCv.getContext('2d');
+function renderStickers(){
+  const d = D();
+  const imgs = [...STK.map(s => spriteURL(s, 3)), ...d.sprites.map(s => spriteURL(s, 3))];
+  $('#stks').innerHTML = imgs.map((u, i) => `<button type="button" data-i="${i}" aria-pressed="${stkSel === i}" title="${i < 8 ? STK_NAMES[i] : '我的角色'}" aria-label="${i < 8 ? STK_NAMES[i] : '我的角色 ' + (i - 7)}"><img alt="" src="${u}"></button>`).join('')
+    + `<button type="button" data-i="-1" aria-pressed="${stkSel === -1}" style="font:inherit;font-size:12px;font-weight:700">移除</button>`;
+  $('#stks').querySelectorAll('button').forEach(b => b.onclick = () => { stkSel = +b.dataset.i; renderStickers(); });
+  stkG.imageSmoothingEnabled = false; stkG.drawImage(sceneBG(d, d.sprites.map(spriteCanvas)), 0, 0);
+  $('#stkCount').textContent = `已放 ${d.stickers.length} / 12 個貼紙`;
+}
+seg('#stkSize', [[0, '小貼紙'], [1, '大貼紙']], () => stkBig, v => stkBig = v);
+stkCv.addEventListener('pointerdown', e => {
+  e.preventDefault(); const r = stkCv.getBoundingClientRect();
+  const x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H; const d = D();
+  if (stkSel === -1){
+    for (let k = d.stickers.length - 1; k >= 0; k--){ const s = d.stickers[k], z = s.big ? 26 : 14; if (Math.abs(s.x*4 - x) < z && Math.abs(s.y*4 - y) < z){ d.stickers.splice(k, 1); break; } }
+  } else {
+    if (d.stickers.length >= 12){ toast('最多 12 個貼紙。可以先移除一些。'); return; }
+    d.stickers.push({ s: stkSel, big: !!stkBig, x: clamp(x/4, 0, 90), y: clamp(y/4, 0, 120) });
+  }
+  saveDraft(); renderStickers();
+});
+$('#bStkUndo').onclick = () => { D().stickers.pop(); saveDraft(); renderStickers(); };
+$('#bStkClr').onclick = e => twoStep(e.currentTarget, () => { D().stickers = []; saveDraft(); renderStickers(); });
+
+// 背景音樂
+const NOTE_NAMES = ['La','So','Mi','Re','Do'];
+function renderSeq(){
+  const m = D().music; let h = '';
+  for (let r = 0; r < 5; r++){
+    h += `<span>${NOTE_NAMES[r]}</span>`;
+    for (let s = 0; s < 8; s++){ const on = !!(m[s] >> r & 1); h += `<button type="button" data-r="${r}" data-s="${s}" class="${on ? 'on' : ''}" aria-pressed="${on}" aria-label="${NOTE_NAMES[r]} 第 ${s+1} 拍"></button>`; }
+  }
+  $('#seq').innerHTML = h;
+  $('#seq').querySelectorAll('button').forEach(b => b.onclick = () => {
+    const r = +b.dataset.r, s = +b.dataset.s, m = D().music; m[s] ^= (1 << r);
+    const on = !!(m[s] >> r & 1); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
+    if (on){ try { audio(); tone(NOTES[r], AC.currentTime + .01, .25, 'triangle'); } catch(e){} }
+    saveDraft();
+  });
+}
+seg('#tempoSeg', [[0, '慢'], [1, '中'], [2, '快']], () => D().tempo, v => D().tempo = v);
+const beat = s => document.querySelectorAll('#seq button').forEach(b => b.classList.toggle('beat', +b.dataset.s === s));
+const listener = { shouldStop: () => view !== 'student' || $('#p-look').hidden };
+$('#bListen').onclick = () => {
+  if (Music.owner === listener){ Music.stop(); $('#bListen').textContent = '▶ 試聽'; return; }
+  if (!D().music.some(v => v)){ toast('先點格仔放一些音符'); return; }
+  Music.start(listener, D());
+  Music.onBeat = s => { beat(s); if (s < 0) $('#bListen').textContent = '▶ 試聽'; };
+  $('#bListen').textContent = '■ 停止';
+};
+$('#bSeqClr').onclick = () => { D().music.fill(0); saveDraft(); renderSeq(); };
+
 // Step 5: submit
 function renderSubmit(){
   const d = D(), t = TT();
-  const changed = d.sprites.filter((s, i) => !sameArr(s, SP[t.spr[i]])).length;
+  const changed = d.sprites.slice(0, 3).filter((s, i) => !sameArr(s, SP[t.spr[i]])).length;
   const items = [
     [!!d.cls, d.cls ? `已登記：${d.cls} ${d.num} 號` : '登記班別和學號'],
     [true, `遊戲類型：${t.name}`],
@@ -1180,9 +1455,23 @@ function renderSubmit(){
   ];
   $('#checklist').innerHTML = items.map(([ok, tx]) => `<li class="${ok ? 'ok' : ''}"><span class="m">${ok ? '✓' : ''}</span>${esc(tx)}</li>`).join('');
   $('#cardPrev').innerHTML = `<img alt="" src="${spriteURL(d.sprites[0], 5)}"><div style="min-width:0"><div class="t">${esc(d.title || '未命名遊戲')} <span class="tag">${t.name}</span></div><div class="muted small">${esc(d.desc)}</div><div class="small">${d.cls ? esc(d.cls) + ' · ' + d.num + ' 號' : '未登記'}${d.nick ? ' · ' + esc(d.nick) : ''}</div></div>`;
-  $('#codeBox').value = d.cls ? encode(d) : '請先登記班別和學號，才會產生作品碼。';
+  const ch = challenges(d);
+  $('#starCount').textContent = '★ ' + ch.filter(c => c[0]).length + ' / 4';
+  $('#advlist').innerHTML = ch.map(([ok, tx]) => `<li class="${ok ? 'ok' : ''}"><span class="m">${ok ? '★' : ''}</span>${esc(tx)}</li>`).join('');
+  const code = d.cls ? encode(d) : '';
+  $('#codeBox').value = code || '請先登記班別和學號，才會產生作品碼。';
   const f = $('#bForm');
-  if (FORM_URL && d.cls){ f.href = FORM_URL.replace('CODE', encodeURIComponent(encode(d))); f.hidden = false; } else f.hidden = true;
+  if (FORM_URL && code){ f.href = FORM_URL.replace('CODE', encodeURIComponent(code)); f.hidden = false; } else f.hidden = true;
+  $('#homeQR').hidden = !code;
+  if (code){ const url = SITE_URL + '#' + code; $('#qrUrl').textContent = url; makeQR($('#qrStu'), url); }
+}
+let qrCache = new WeakMap();
+function makeQR(el, text){
+  if (qrCache.get(el) === text) return; qrCache.set(el, text);
+  el.innerHTML = '';
+  if (typeof QRCode === 'undefined'){ el.textContent = 'QR 碼工具載入失敗，請重新整理頁面。'; el.style.lineHeight = '1.4'; return; }
+  try { new QRCode(el, { text, width: 360, height: 360, correctLevel: QRCode.CorrectLevel.L }); }
+  catch(e){ el.textContent = '作品太大，未能產生 QR 碼。可以減少貼紙或動畫。'; el.style.lineHeight = '1.4'; }
 }
 $('#bCopy').addEventListener('click', () => {
   if (!D().cls){ openReg(); return; }
@@ -1219,8 +1508,8 @@ const totalOf = id => { const s = T.scores[id] || {}; return (s.c || 0) + (s.a |
 const author = d => `${d.cls} · ${d.num} 號${d.nick ? ' · ' + d.nick : ''}`;
 
 $('#bImp').onclick = () => {
-  const txt = $('#imp').value; const codes = txt.match(/G[12][A-Za-z0-9_-]{200,}/g) || [];
-  if (!codes.length){ $('#impMsg').textContent = '找不到作品碼。作品碼以 G2 開頭，請檢查是否完整貼上。'; return; }
+  const txt = $('#imp').value; const codes = txt.match(/G[1-3][A-Za-z0-9_-]{50,}/g) || [];
+  if (!codes.length){ $('#impMsg').textContent = '找不到作品碼。作品碼以 G3 開頭，請檢查是否完整貼上。'; return; }
   const r = { new:0, upd:0, same:0, bad:0 }; codes.forEach(c => r[addGame(c)]++);
   saveT(); renderTeacher();
   $('#impMsg').textContent = `新增 ${r.new} 個，更新 ${r.upd} 個${r.same ? `，重複 ${r.same} 個` : ''}${r.bad ? `，有 ${r.bad} 個作品碼不完整或是舊版（請該同學再交一次）` : ''}。`;
@@ -1229,11 +1518,12 @@ $('#bImp').onclick = () => {
 $('#bDemo').onclick = () => {
   const rc = (sp, map) => sp.map(v => map[v] ?? v);
   const mk = (num, type, o, maps) => { const d = Object.assign(defaultDesign(type), { cls:'示範', num, nick:'示範' }, o); d.sprites = d.sprites.map((s, i) => rc(s, maps[i] || {})); return d; };
+  const flap = SP.bird.map((v, i) => { const y = (i / 12) | 0; return (y >= 5 && y <= 7 && v === 2) ? 0 : v; });
   [
-    mk(1, 1, { title:'粉紅小鳥', desc:'點一下就飛，穿過水管收金幣！', bg:3 }, [{6:11}, {7:9, e:14}, {}]),
-    mk(2, 3, { title:'打地鼠大賽', desc:'30 秒內打最多地鼠，炸彈不要打！', goal:0 }, [{}, {}, {}]),
-    mk(3, 4, { title:'太空救援', desc:'外星人越來越快，你可以撐多久？', ramp:2, lives:2, sound:2 }, [{9:10, e:6}, {a:7}, {6:14}])
-  ].forEach(d => addGame(encode(d), true));
+    mk(1, 1, { title:'粉紅小鳥', desc:'點一下就飛，穿過水管收金幣！', bg:3, music:[1,4,2,8,1,16,4,0], stickers:[{s:2,big:false,x:20,y:110},{s:2,big:false,x:70,y:112},{s:3,big:true,x:75,y:20}] }, [{6:11}, {7:9}, {}]),
+    mk(2, 3, { title:'打地鼠大賽', desc:'30 秒內打最多地鼠，炸彈不要打！', goal:0, pfx:2, pfreq:5 }, [{}, {}, {}, {11:9}]),
+    mk(3, 4, { title:'太空救援', desc:'外星人越來越快，你可以撐多久？', ramp:2, lives:2, sound:2, pfx:1, pfreq:4 }, [{9:10, 14:6}, {10:7}, {6:14}, {11:8}])
+  ].forEach((d, k) => { if (k === 0) d.frames2[0] = rc(flap, {6:11}); addGame(encode(d), true); });
   saveT(); renderTeacher(); $('#impMsg').textContent = '已載入 3 個示範作品（標示「示範」），正式使用前可以移除。';
 };
 $('#bDemoClr').onclick = () => {
@@ -1265,7 +1555,7 @@ function renderList(){
     const { d, demo } = T.games[id]; const s = T.scores[id] || {};
     return `<article class="trow" data-id="${esc(id)}">
       <div class="thumbs">${d.sprites.map(sp => `<img alt="" src="${spriteURL(sp, 3)}">`).join('')}</div>
-      <div class="tinfo"><b>${esc(d.title || '未命名')}</b><span><span class="tag">${TYPES[d.type].name}</span> ${esc(author(d))}${demo ? '<span class="demo">示範</span>' : ''}</span></div>
+      <div class="tinfo"><b>${esc(d.title || '未命名')}</b><span><span class="tag">${TYPES[d.type].name}</span> ${esc(author(d))}${demo ? '<span class="demo">示範</span>' : ''}</span>${starsOf(d) ? `<br><span class="stars small">${'★'.repeat(starsOf(d))} 進階挑戰 ${starsOf(d)} 項</span>` : ''}</div>
       <div class="tscore">${CR.map(([k, n]) => `<div class="crit">${n}<div class="dots">${[1,2,3,4,5].map(v => `<button data-k="${k}" data-v="${v}" class="${(s[k] || 0) >= v ? 'on' : ''}" aria-label="${n} ${v} 分">${v}</button>`).join('')}</div></div>`).join('')}</div>
       <div class="ttotal"><b>${totalOf(id)}</b><small>/ 15 · ${vc[id] || 0} 票</small></div>
       <div class="row"><button class="btn sm go" data-act="play">試玩</button><button class="btn sm" data-act="del">刪除</button></div>
@@ -1290,10 +1580,12 @@ function renderAwards(){
   const scored = ids.filter(id => totalOf(id) > 0).sort((a, b) => totalOf(b) - totalOf(a));
   const art = ids.filter(id => (T.scores[id] || {}).a).sort((a, b) => (T.scores[b].a - T.scores[a].a) || (totalOf(b) - totalOf(a)));
   const pop = ids.filter(id => vc[id]).sort((a, b) => vc[b] - vc[a]);
+  const star = ids.filter(id => starsOf(T.games[id].d)).sort((a, b) => (starsOf(T.games[b].d) - starsOf(T.games[a].d)) || (totalOf(b) - totalOf(a)));
   $('#awards').innerHTML = `
     <div class="aw"><h4>最佳遊戲設計（總分）</h4>${top(scored, id => totalOf(id) + ' 分')}</div>
     <div class="aw"><h4>最佳美術設計（美術分）</h4>${top(art, id => T.scores[id].a + ' 分')}</div>
-    <div class="aw"><h4>人氣遊戲獎（展覽館票數）</h4>${top(pop, id => vc[id] + ' 票')}</div>`;
+    <div class="aw"><h4>人氣遊戲獎（展覽館票數）</h4>${top(pop, id => vc[id] + ' 票')}</div>
+    <div class="aw"><h4>挑戰達人獎（進階挑戰，同數比總分）</h4>${top(star, id => '★ ' + starsOf(T.games[id].d))}</div>`;
 }
 function renderVotes(){
   const entries = Object.entries(T.votes).sort((a, b) => a[0] - b[0]);
@@ -1333,6 +1625,8 @@ function openPlayer(id, vote){
   $('#mCtl').textContent = '電腦：' + t.key + '　iPad：' + t.touch;
   $('#mMsg').textContent = '';
   $('#mVote').hidden = !vote;
+  $('#mQRbtn').hidden = vote; $('#mQR').hidden = true;
+  $('#mQRbtn').onclick = () => { const box = $('#mQR'); box.hidden = !box.hidden; if (!box.hidden) makeQR($('#qrM'), SITE_URL + '#' + g.code); };
   syncVoteBtn();
   GM.reset(); activeGame = GM; $('#mPlay').hidden = false;
 }
@@ -1377,22 +1671,39 @@ function renderGallery(){
   document.querySelectorAll('.gcard').forEach(b => b.onclick = () => openPlayer(b.dataset.id, true));
 }
 
+/* ===== 帶回家玩：用 QR 碼打開的單一遊戲頁 ===== */
+let playD = null;
+const GP = Game($('#cvP'), () => playD || defaultDesign(0));
+$('#pStart').onclick = () => GP.start();
+function showPlay(code){
+  playD = decode(code);
+  if (!playD){ $('#pTitle').textContent = '找不到這個遊戲'; $('#pBy').textContent = ''; $('#pDesc').textContent = ''; $('#pErr').textContent = '這個連結不完整，請再掃描一次 QR 碼。'; $('#pCtl').textContent = ''; return; }
+  const t = TYPES[playD.type];
+  $('#pTitle').textContent = playD.title || '未命名遊戲';
+  $('#pBy').textContent = t.name + ' · 作者：' + (playD.nick || playD.cls + ' 班同學');
+  $('#pDesc').textContent = playD.desc; $('#pErr').textContent = '';
+  $('#pCtl').innerHTML = `電腦：${esc(t.key)}，空白鍵開始。<br>手機／iPad：${esc(t.touch)}。`;
+  document.title = (playD.title || '遊戲') + ' · 小小遊戲設計師';
+  GP.reset(); activeGame = GP;
+}
+
 /* ===== 切換頁面 ===== */
 let view = 'student';
 function route(){
   const h = location.hash.replace('#', '');
-  view = h === 'teacher' ? 'teacher' : h === 'gallery' ? 'gallery' : 'student';
-  $('#v-student').hidden = view !== 'student'; $('#v-teacher').hidden = view !== 'teacher'; $('#v-gallery').hidden = view !== 'gallery';
+  view = h === 'teacher' ? 'teacher' : h === 'gallery' ? 'gallery' : /^G\d/.test(h) ? 'play' : 'student';
+  $('#v-student').hidden = view !== 'student'; $('#v-teacher').hidden = view !== 'teacher'; $('#v-gallery').hidden = view !== 'gallery'; $('#v-play').hidden = view !== 'play';
   if (!$('#mPlay').hidden) closePlayer();
   $('#mReg').hidden = !(view === 'student' && !D().cls);
   if (view === 'teacher') renderTeacher();
   if (view === 'gallery') renderGallery();
+  if (view === 'play') showPlay(h);
   if (view === 'student') activeGame = G1;
   renderWho(); window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', route);
 
-renderTypes(); buildRules(); syncRules(); syncLook(); renderPal(); renderSlots(); drawEditor(); renderHint(); updateStats(); renderSubmit();
+renderTypes(); buildRules(); syncRules(); renderPower(); syncLook(); renderSeq(); renderPal(); renderSlots(); renderFrames(); drawEditor(); renderHint(); updateStats(); renderSubmit();
 route();
 requestAnimationFrame(loop);
 if (document.fonts && document.fonts.load) document.fonts.load('20px "DotGothic16"').catch(() => {});
