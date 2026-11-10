@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>3D 造型工作室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&family=Noto+Sans+TC:wght@400;700;900&display=swap">
+<style>
+/* Layout: one screen like a sculptor's bench. Left = lesson steps panel, right = SculptGL itself. Dark slate to sit beside SculptGL's own UI; clay pink is the accent. */
+:root{
+  --bg:#1b1e23; --panel:#23272e; --raise:#2c313a; --line:#3a404b; --fg:#eef1f5; --muted:#a6afbd;
+  --clay:#eda98a; --clay-ink:#2a1a12; --mint:#72d0b5; --warn:#ffcf6b; --bad:#ff8a7a;
+  --f-display:"M PLUS Rounded 1c","Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;
+  --f-body:"Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg);margin:0}
+body{font-family:var(--f-body);font-size:16px;line-height:1.6;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+img{max-width:100%}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.25}
+h2{font-size:22px;font-weight:800}
+h3{font-size:17px;font-weight:800}
+a{color:var(--clay)}
+.muted{color:var(--muted)} .small{font-size:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.between{justify-content:space-between}
+.btn{font:inherit;font-weight:700;font-size:15px;border:2px solid var(--line);background:var(--raise);color:var(--fg);border-radius:10px;padding:8px 14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;line-height:1.2}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--clay);border-color:var(--clay);color:var(--clay-ink)}
+.btn.go{background:var(--mint);border-color:var(--mint);color:#0f2a23}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
+input.txt,select.txt{font:inherit;color:var(--fg);background:var(--bg);border:2px solid var(--line);border-radius:10px;padding:8px 12px;width:100%;min-width:0}
+.msg{min-height:1.4em;font-weight:700;margin:6px 0 0}
+.msg.bad{color:var(--bad)} .msg.ok{color:var(--mint)}
+.kbd{display:inline-block;font-family:ui-monospace,Consolas,monospace;font-size:13px;font-weight:700;background:var(--bg);border:2px solid var(--line);border-bottom-width:4px;border-radius:7px;padding:1px 8px;margin:0 2px;color:var(--fg)}
+
+/* Top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--panel);border-bottom:1px solid var(--line);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px}
+.brand{display:flex;align-items:center;gap:10px}
+.blob{width:34px;height:34px;border-radius:46% 54% 50% 50% / 55% 45% 55% 45%;background:radial-gradient(circle at 35% 30%,#ffd9c7,var(--clay) 55%,#b8705a);flex:none}
+.brand .eyebrow{font-size:11px;letter-spacing:.14em;color:var(--muted);font-weight:700}
+.brand h1{font-size:19px;font-weight:800}
+.chip{border:1px solid var(--clay);color:var(--clay);border-radius:999px;padding:2px 12px;font-size:14px;font-weight:700}
+.linkbtn{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font:inherit;font-size:13px;padding:4px}
+
+/* Bench (student view) */
+.bench{display:grid;grid-template-columns:400px minmax(0,1fr);height:calc(100dvh - 58px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));min-height:520px}
+.bench.collapsed{grid-template-columns:0 minmax(0,1fr)}
+.bench.collapsed .panel{display:none}
+.panel{background:var(--panel);border-right:1px solid var(--line);overflow:auto;display:flex;flex-direction:column;min-width:0}
+.stage{position:relative;min-width:0;background:#111}
+.stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.stage .float{position:absolute;right:12px;bottom:12px;display:flex;gap:8px;z-index:2}
+.stage .float .btn{background:rgba(35,39,46,.92)}
+@media (max-width:900px){
+  .bench{grid-template-columns:minmax(0,1fr);height:auto}
+  .bench.collapsed{grid-template-columns:minmax(0,1fr)}
+  .bench.collapsed .panel{display:flex}
+  .panel{border-right:0;border-bottom:1px solid var(--line)}
+  .stage{height:75vh}
+}
+.steps-nav{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:12px 16px 10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:1}
+.steps-nav button{font:inherit;font-family:var(--f-display);font-weight:800;font-size:14px;min-width:34px;height:32px;padding:0 8px;border-radius:999px;border:2px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer}
+.steps-nav button.sub{min-width:28px;height:26px;font-size:12px;border-width:1px}
+.steps-nav button.done{border-color:var(--mint);color:var(--mint)}
+.steps-nav button[aria-current="step"]{background:var(--clay);border-color:var(--clay);color:var(--clay-ink)}
+.steps-nav .arr{color:var(--line);font-size:12px}
+.step{padding:16px 18px 24px;display:flex;flex-direction:column;gap:12px}
+.step .no{font-family:var(--f-display);font-weight:800;color:var(--clay);font-size:13px;letter-spacing:.1em}
+.step p{margin:0}
+.step ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.shot{border-radius:10px;border:1px solid var(--line);display:block;width:100%;cursor:zoom-in}
+.alert{border:2px solid var(--bad);border-radius:10px;padding:8px 12px;color:#ffd4cd;background:rgba(255,138,122,.08);font-weight:700;font-size:15px}
+.task{border:2px dashed var(--clay);border-radius:12px;padding:10px 12px;background:rgba(237,169,138,.07)}
+.task b{color:var(--clay);font-family:var(--f-display)}
+.task label{display:flex;gap:8px;align-items:center;margin-top:8px;font-weight:700;cursor:pointer}
+.task input{width:20px;height:20px;accent-color:var(--mint)}
+.stepbtns{display:flex;justify-content:space-between;gap:10px;margin-top:6px}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center}
+.panel-foot{margin-top:auto;padding:10px 18px 14px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
+
+/* Upload */
+.drop{border:2px dashed var(--line);border-radius:12px;padding:14px;text-align:center;cursor:pointer;background:var(--bg);display:grid;gap:6px;place-items:center;min-height:120px}
+.drop.on{border-color:var(--clay)}
+.drop img{max-height:180px;border-radius:8px}
+.filebox{display:flex;gap:10px;align-items:center;border:2px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--bg)}
+.filebox .name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>span{font-weight:700;font-size:14px}
+.numlist{counter-reset:n;list-style:none;padding:0!important}
+.numlist li{counter-increment:n;display:flex;gap:10px}
+.numlist li::before{content:counter(n);font-family:var(--f-display);font-weight:800;background:var(--clay);color:var(--clay-ink);border-radius:50%;width:24px;height:24px;flex:none;display:grid;place-items:center;font-size:13px;margin-top:2px}
+
+/* Pages (gallery / teacher) */
+.page{max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:22px 48px}
+.page-head{display:flex;justify-content:space-between;align-items:end;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.page-head h2{font-size:clamp(26px,4vw,38px)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.filters select{width:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.gcard{cursor:pointer;text-align:left;font:inherit;color:var(--fg);padding:0}
+.gcard .pic{aspect-ratio:4/3;background:#111 center/cover no-repeat;position:relative}
+.gcard .pic .star{position:absolute;left:8px;top:8px}
+.gcard .meta{padding:10px 12px 12px}
+.gcard .meta b{font-family:var(--f-display);font-weight:800;font-size:17px;display:block;line-height:1.3}
+.star{display:inline-block;background:var(--warn);color:#2b2200;border-radius:999px;font-size:12px;font-weight:900;padding:1px 9px}
+.lvl{display:inline-block;border-radius:999px;font-size:12px;font-weight:700;padding:1px 8px;border:1px solid var(--line)}
+.empty{border:2px dashed var(--line);border-radius:14px;padding:30px;text-align:center;color:var(--muted);grid-column:1/-1}
+.notice{border:2px solid var(--warn);border-radius:12px;padding:12px 14px;background:rgba(255,207,107,.08);margin-bottom:16px}
+.notice ol{margin:6px 0 0;padding-left:22px}
+.tcard .pic{aspect-ratio:4/3;background:#111 center/cover no-repeat;cursor:zoom-in}
+.tcard .body{padding:10px 12px 12px;display:grid;gap:8px}
+.tcard .who{font-size:14px;color:var(--muted)}
+.lvls{display:flex;gap:4px;flex-wrap:wrap}
+.lvls button{font:inherit;font-size:13px;font-weight:700;border:2px solid var(--line);background:var(--bg);color:var(--fg);border-radius:8px;padding:3px 8px;cursor:pointer}
+.lvls button[aria-pressed="true"]{background:var(--mint);border-color:var(--mint);color:#0f2a23}
+.lvls button.l2[aria-pressed="true"]{background:var(--warn);border-color:var(--warn);color:#2b2200}
+.lvls button.l3[aria-pressed="true"]{background:var(--bad);border-color:var(--bad);color:#2b0d08}
+.starbtn{font:inherit;font-weight:900;font-size:13px;border:2px solid var(--warn);background:transparent;color:var(--warn);border-radius:999px;padding:3px 10px;cursor:pointer}
+.starbtn[aria-pressed="true"]{background:var(--warn);color:#2b2200}
+.tcard input.txt{font-size:14px;padding:6px 10px}
+.stats{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px}
+.stats div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 14px}
+.stats b{font-family:var(--f-display);font-size:24px;display:block;line-height:1.1}
+.login{max-width:380px;margin:40px auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;display:grid;gap:12px}
+
+/* Modals */
+.modal{position:fixed;inset:0;background:rgba(10,12,15,.78);display:grid;place-items:center;z-index:50;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.dialog{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;width:min(440px,100%);max-height:100%;overflow:auto;display:grid;gap:12px}
+.dialog.wide{width:min(900px,100%)}
+.dialog label{display:grid;gap:4px;font-weight:700;font-size:14px}
+.dialog .full{width:100%;border-radius:10px;background:#111;min-height:200px;object-fit:contain;max-height:70vh}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:700;z-index:80;max-width:calc(100% - 32px)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><div class="blob" aria-hidden="true"></div><div><div class="eyebrow">IT精英班 · 第二堂</div><h1>3D 造型工作室</h1></div></div>
+  <div class="row" id="topRight"></div>
+</header>
+
+<!-- ============ 學生：教學 + SculptGL ============ -->
+<main id="v-student" class="bench">
+  <aside class="panel" aria-label="教學步驟">
+    <nav class="steps-nav" id="nav" aria-label="步驟"></nav>
+    <div id="stepBox"></div>
+    <div class="panel-foot">
+      <a class="btn sm" href="#gallery">作品展覽館</a>
+      <a class="btn sm" href="https://stephaneginier.com/sculptgl/" target="_blank" rel="noopener">在新分頁打開 SculptGL</a>
+    </div>
+  </aside>
+  <section class="stage">
+    <iframe id="sg" title="SculptGL" src="https://stephaneginier.com/sculptgl/" allow="fullscreen; clipboard-read; clipboard-write; xr-spatial-tracking" allowfullscreen></iframe>
+    <div class="float"><button class="btn sm" id="bCollapse">收起教學</button></div>
+  </section>
+</main>
+
+<!-- ============ 展覽館 ============ -->
+<main id="v-gallery" class="page" hidden>
+  <div class="page-head">
+    <div><div class="muted small" style="letter-spacing:.14em;font-weight:700">IT精英班 · 第二堂</div><h2>3D 作品展覽館</h2></div>
+    <div class="row"><button class="btn sm" id="gRefresh">重新整理</button><a class="btn sm" href="#">返回工作室</a></div>
+  </div>
+  <div class="filters">
+    <select class="txt" id="gCls" aria-label="班別"></select>
+    <label class="row small" style="gap:6px"><input type="checkbox" id="gStar"> 只看老師精選</label>
+    <span class="muted small" id="gCount"></span>
+  </div>
+  <div class="grid" id="gGrid"></div>
+</main>
+
+<!-- ============ 老師 ============ -->
+<main id="v-teacher" class="page" hidden>
+  <div class="page-head">
+    <div><div class="muted small" style="letter-spacing:.14em;font-weight:700">老師專用</div><h2>作品評分</h2></div>
+    <div class="row"><button class="btn sm" id="tRefresh" hidden>重新整理</button><a class="btn sm" href="#gallery">展覽館</a><a class="btn sm" href="#">返回工作室</a></div>
+  </div>
+  <div id="tBody"></div>
+</main>
+
+<!-- 登記 -->
+<div class="modal" id="mReg" hidden>
+  <form class="dialog" id="regForm">
+    <div class="muted small" style="letter-spacing:.14em;font-weight:700">歡迎來到 3D 造型工作室</div>
+    <h2>先登記你的資料</h2>
+    <p class="muted small" style="margin:0">老師會用來評分和頒獎。展覽館只會顯示班別和班號。</p>
+    <label>姓名<input class="txt" id="rName" maxlength="10" required autocomplete="off" placeholder="例如 陳小明"></label>
+    <label>班別<input class="txt" id="rCls" list="clsList" maxlength="4" required autocomplete="off" placeholder="例如 6A"></label>
+    <datalist id="clsList"><option value="6A"></option><option value="6B"></option><option value="6C"></option><option value="6D"></option><option value="6E"></option></datalist>
+    <label>班號<input class="txt" id="rNum" type="number" min="1" max="45" required inputmode="numeric"></label>
+    <p class="msg bad" id="regMsg"></p>
+    <button class="btn primary" type="submit">開始</button>
+  </form>
+</div>
+
+<!-- 看大圖 -->
+<div class="modal" id="mView" hidden>
+  <div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="vTitle">
+    <div class="row between" style="flex-wrap:nowrap;align-items:start">
+      <div style="min-width:0"><h2 id="vTitle"></h2><div class="muted small" id="vBy"></div></div>
+      <button class="btn sm" id="vClose">關閉</button>
+    </div>
+    <img class="full" id="vImg" alt="作品圖片">
+    <div class="row"><button class="btn" id="vSgl" hidden>下載 3D 檔（.sgl）</button><span class="muted small" id="vNote"></span></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ===== 老師設定 =====
+   API_URL：Google Apps Script 網頁應用程式網址（以 /exec 結尾）。
+   安裝方法見同一資料夾的 apps-script.gs。未設定時，上載和展覽館不會運作。 */
+const API_URL = '';
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const S = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+};
+const SS = {
+  get(k){ try { return sessionStorage.getItem(k) || ''; } catch(e){ return ''; } },
+  set(k, v){ try { sessionStorage.setItem(k, v); } catch(e){} }
+};
+let toastT;
+function toast(m){ const t = $('#toast'); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2800); }
+function twoStep(btn, fn){
+  if (btn.dataset.armed){ delete btn.dataset.armed; btn.textContent = btn.dataset.label; fn(); return; }
+  btn.dataset.label = btn.textContent; btn.dataset.armed = '1'; btn.textContent = '再按一次確定';
+  setTimeout(() => { if (btn.dataset.armed){ delete btn.dataset.armed; btn.textContent = btn.dataset.label; } }, 3500);
+}
+
+/* ===== 後台 ===== */
+async function apiGet(params){
+  const r = await fetch(API_URL + '?' + new URLSearchParams(params), { redirect: 'follow' });
+  return r.json();
+}
+async function apiPost(obj){
+  const r = await fetch(API_URL, { method: 'POST', body: JSON.stringify(obj), redirect: 'follow' });
+  return r.json();
+}
+function bytesToB64(bytes){
+  let s = ''; const CH = 0x8000;
+  for (let i = 0; i < bytes.length; i += CH) s += String.fromCharCode.apply(null, bytes.subarray(i, i + CH));
+  return btoa(s);
+}
+function b64ToBlob(b64, mime){ const s = atob(b64); const a = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return new Blob([a], { type: mime }); }
+function saveBlob(blob, name){ const u = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); }
+
+/* ===== 學生資料 ===== */
+let me = S.get('sg-me', null) || { name:'', cls:'', num:0 };
+let doneSteps = S.get('sg-done', {});
+let curStep = S.get('sg-step', 0);
+
+function renderTop(){
+  const el = $('#topRight');
+  if (view === 'student'){
+    el.innerHTML = me.name ? `<span class="chip">${esc(me.cls)} · ${me.num} 號 · ${esc(me.name)}</span><button class="linkbtn" id="bEditReg">修改</button>` : '';
+    if (me.name) $('#bEditReg').onclick = openReg;
+  } else el.innerHTML = '';
+}
+function openReg(){ $('#rName').value = me.name; $('#rCls').value = me.cls; $('#rNum').value = me.num || ''; $('#regMsg').textContent = ''; $('#mReg').hidden = false; setTimeout(() => $('#rName').focus(), 50); }
+$('#regForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const name = $('#rName').value.trim(), cls = $('#rCls').value.trim().toUpperCase(), num = parseInt($('#rNum').value, 10);
+  if (!name){ $('#regMsg').textContent = '請填寫姓名。'; return; }
+  if (!cls){ $('#regMsg').textContent = '請填寫班別，例如 6A。'; return; }
+  if (!(num >= 1 && num <= 45)){ $('#regMsg').textContent = '班號要是 1 至 45 的數字。'; return; }
+  me = { name: name.slice(0, 10), cls, num }; S.set('sg-me', me);
+  $('#mReg').hidden = true; renderTop(); if (STEPS[curStep].key === 'up') renderStep();
+});
+
+/* ===== 教學步驟 1 → 2 → 3 → 4（a b c）→ 5 → 上載 ===== */
+const IMG = n => `<img class="shot" src="img/${n}.jpg" alt="" loading="lazy" data-zoom>`;
+const STEPS = [
+  { key:'1', title:'認識 SculptGL', html:`
+    <p>SculptGL 是一款<b>免費</b>的網頁版 3D 造型軟件，不用安裝，打開網頁就可以用。</p>
+    <p>用法好像<b>捏黏土</b>：在球體上推、拉、壓，就能做出不同形狀，很適合第一次學 3D 造型。</p>
+    <p class="small muted">右邊已經打開了 SculptGL。官方網站：<a href="https://stephaneginier.com/sculptgl/" target="_blank" rel="noopener">stephaneginier.com/sculptgl</a></p>
+    ${IMG('sphere')}`,
+    task:'按 SculptGL 上方的「Language」，揀中文介面，看到畫面中間的球體。' },
+  { key:'2', title:'場景管理', html:`
+    <p>打開 SculptGL 後，畫面會有一個<b>球體</b>。</p>
+    <p>按上方「<b>場景</b>」，可以加入其他基本造型：立方體、圓柱、圓環。</p>
+    <div class="alert">小心！不要按「清除場景」，否則所有作品都會消失。</div>
+    ${IMG('scene-menu')}`,
+    task:'按「場景」→「加入立方體」，看看畫面多了甚麼。' },
+  { key:'3', title:'安全網：復原與取消復原', html:`
+    <p>做錯了不用怕，可以回到上一步。按上方「<b>記錄</b>」：</p>
+    <div class="keys"><span><span class="kbd">Ctrl</span>+<span class="kbd">Z</span></span><span><b>復原</b>：回到上一步</span>
+      <span><span class="kbd">Ctrl</span>+<span class="kbd">Y</span></span><span><b>取消復原</b>：取消剛才的復原</span></div>
+    <p class="small muted">用鍵盤快速鍵前，先用滑鼠點一下右邊的 3D 畫面。</p>
+    ${IMG('history-menu')}`,
+    task:'按 Ctrl + Z，把剛才加入的立方體移走。' },
+  { key:'4', title:'基本工具設定', html:`
+    <p>介面右方的「<b>雕刻和塗繪</b>」是最常用的工具。在「工具」一欄可以揀不同筆刷。</p>
+    ${IMG('tools-list')}
+    <p>在球體上移動滑鼠，會見到<b>兩個紅點</b>：電腦預設開了「<b>對稱</b>」，你在一邊做，另一邊會自動做出一樣的（鏡像）。</p>
+    <ul><li><b>半徑</b>：筆刷有多大。</li><li><b>強度</b>：效果有多強。</li></ul>
+    ${IMG('symmetry')}`,
+    task:'把「半徑」調大再調細，看看球上的圓圈怎樣變化。' },
+  { key:'4a', sub:true, title:'筆刷 a：膨脹', html:`
+    <p>「工具」揀「<b>膨脹</b>」，在球面上掃，表面會<b>凸起</b>，例如做眼球。</p>
+    <p>勾選「<b>反向</b>」，就會變成<b>凹下去</b>，例如做眼窩。</p>
+    ${IMG('inflate')}`,
+    task:'做兩隻凸起的眼睛，再勾「反向」做兩個眼窩。' },
+  { key:'4b', sub:true, title:'筆刷 b：皺褶', html:`
+    <p>「工具」揀「<b>皺褶</b>」，可以畫出<b>凸起的皺紋</b>。</p>
+    <p>勾選「<b>反向</b>」，就變成<b>凹下的褶紋</b>，例如笑臉的嘴巴。</p>
+    ${IMG('crease')}`,
+    task:'勾「反向」，用皺褶畫一個笑口。' },
+  { key:'4c', sub:true, title:'筆刷 c：抹平', html:`
+    <p>「工具」揀「<b>抹平</b>」，可以把表面<b>磨平</b>。</p>
+    <p>把強度調高，甚至可以削出<b>平坦的切面</b>。</p>
+    ${IMG('flatten')}`,
+    task:'把頭的底部抹平，令它可以平穩地放在地上。' },
+  { key:'5', title:'創意挑戰', html:`
+    <p>用<b>膨脹、皺褶、抹平</b>三種工具，雕刻一個簡單的<b>人物角色</b>或<b>笑臉</b>。</p>
+    <ul>
+      <li>可以做卡通人物、動物、外星人，或者有表情的臉。</li>
+      <li>先做大形狀，再做細節。</li>
+      <li>想加耳朵或帽子？用「場景」加入球體或圓環。</li>
+      <li>做錯就按 <span class="kbd">Ctrl</span>+<span class="kbd">Z</span>。</li>
+    </ul>
+    <div class="task"><b>老師會看甚麼</b><ul style="margin-top:6px"><li>有沒有用齊三種工具</li><li>五官或特徵清不清楚</li><li>有沒有自己的創意</li></ul></div>`,
+    task:'完成一個屬於你的 3D 角色，再到下一步上載。' },
+  { key:'up', title:'儲存及上載作品', html: '' }
+];
+
+function renderNav(){
+  const parts = [];
+  STEPS.forEach((s, i) => {
+    if (i > 0 && !s.sub) parts.push('<span class="arr" aria-hidden="true">→</span>');
+    const label = s.key === 'up' ? '上載' : s.key;
+    parts.push(`<button type="button" class="${s.sub ? 'sub ' : ''}${doneSteps[s.key] ? 'done' : ''}" data-i="${i}" ${i === curStep ? 'aria-current="step"' : ''} title="${esc(s.title)}">${label}</button>`);
+  });
+  $('#nav').innerHTML = parts.join('');
+  $('#nav').querySelectorAll('button').forEach(b => b.onclick = () => go(+b.dataset.i));
+}
+function go(i){ curStep = Math.max(0, Math.min(STEPS.length - 1, i)); S.set('sg-step', curStep); renderNav(); renderStep(); $('.panel').scrollTop = 0; }
+function renderStep(){
+  const s = STEPS[curStep], box = $('#stepBox');
+  const label = s.key === 'up' ? '最後一步' : s.sub ? `第 4 步（${s.key[1]}）` : `第 ${s.key} 步`;
+  if (s.key === 'up'){ box.innerHTML = `<div class="step"><div class="no">${label}</div><h2>${s.title}</h2>${uploadHTML()}<div class="stepbtns"><button class="btn" id="prev">← 上一步</button><a class="btn go" href="#gallery">看展覽館 →</a></div></div>`; bindUpload(); }
+  else box.innerHTML = `<div class="step"><div class="no">${label}</div><h2>${s.title}</h2>${s.html}
+    <div class="task"><b>試一試</b><p style="margin-top:4px">${esc(s.task)}</p><label><input type="checkbox" id="doneChk" ${doneSteps[s.key] ? 'checked' : ''}> 我做到了</label></div>
+    <div class="stepbtns"><button class="btn" id="prev" ${curStep === 0 ? 'disabled' : ''}>← 上一步</button><button class="btn primary" id="next">下一步 →</button></div></div>`;
+  const prev = $('#prev'); if (prev) prev.onclick = () => go(curStep - 1);
+  const next = $('#next'); if (next) next.onclick = () => { doneSteps[s.key] = true; S.set('sg-done', doneSteps); go(curStep + 1); };
+  const chk = $('#doneChk'); if (chk) chk.onchange = () => { doneSteps[s.key] = chk.checked; S.set('sg-done', doneSteps); renderNav(); };
+  box.querySelectorAll('[data-zoom]').forEach(im => im.onclick = () => showImage(im.src, STEPS[curStep].title, '講義截圖', null));
+}
+$('#bCollapse').onclick = () => { const b = $('#v-student'); b.classList.toggle('collapsed'); $('#bCollapse').textContent = b.classList.contains('collapsed') ? '打開教學' : '收起教學'; };
+
+/* ===== 上載 ===== */
+let up = { title:'', jpg:null, jpgURL:'', thumb:'', sgl:null, sglName:'', busy:false };
+function uploadHTML(){
+  if (!API_URL) return `<div class="notice"><b>上載功能未設定。</b>請老師先完成 Google Apps Script 設定（見老師頁）。你可以先把 3D 檔和截圖儲存在電腦。</div>`;
+  const last = S.get('sg-last', null);
+  return `
+    <ol class="numlist" style="display:grid;gap:8px">
+      <li><span><b>儲存 3D 檔</b>：在 SculptGL 按「檔案（匯入/匯出）」→ 儲存 <b>.sgl</b>。檔案會存到「下載」資料夾。</span></li>
+      <li><span><b>截圖</b>：把作品轉到最好看的角度，按 <span class="kbd">Win</span>+<span class="kbd">Shift</span>+<span class="kbd">S</span> 圈起作品，再回到這裏按 <span class="kbd">Ctrl</span>+<span class="kbd">V</span> 貼上。</span></li>
+      <li><span>寫作品名稱，按「上載作品」。</span></li>
+    </ol>
+    ${me.name ? '' : '<div class="notice">請先<button class="linkbtn" id="regNow" style="color:var(--clay)">登記姓名、班別和班號</button>。</div>'}
+    <label class="field"><span>作品名稱</span><input class="txt" id="uTitle" maxlength="20" placeholder="例如 開心外星人" value="${esc(up.title)}"></label>
+    <div class="field"><span>作品圖片（JPG／PNG，或按 Ctrl+V 貼上截圖）</span>
+      <div class="drop" id="uDrop" tabindex="0" role="button" aria-label="揀選或貼上作品圖片">${up.jpgURL ? `<img src="${up.jpgURL}" alt="作品預覽">` : '<span class="muted">按這裏揀圖片<br>或按 Ctrl + V 貼上截圖</span>'}</div>
+      <input type="file" id="uImg" accept="image/jpeg,image/png,.jpg,.jpeg,.png" hidden></div>
+    <div class="field"><span>3D 檔（.sgl）</span>
+      <div class="filebox"><span class="name" id="uSglName">${up.sglName ? esc(up.sglName) : '<span class="muted">未揀檔案</span>'}</span><button class="btn sm" id="uSglBtn">揀檔案</button></div>
+      <input type="file" id="uSgl" accept=".sgl" hidden></div>
+    <button class="btn primary" id="uGo" style="justify-content:center">上載作品</button>
+    <p class="msg" id="uMsg"></p>
+    ${last ? `<p class="small muted" style="margin:0">你在 ${new Date(last.t).toLocaleTimeString('zh-HK', { hour:'2-digit', minute:'2-digit' })} 上載了《${esc(last.title)}》。再上載會取代舊作品。</p>` : ''}`;
+}
+function bindUpload(){
+  if (!API_URL) return;
+  const rn = $('#regNow'); if (rn) rn.onclick = openReg;
+  $('#uTitle').oninput = e => up.title = e.target.value;
+  $('#uDrop').onclick = () => $('#uImg').click();
+  $('#uDrop').onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); $('#uImg').click(); } };
+  $('#uImg').onchange = e => { const f = e.target.files[0]; if (f) takeImage(f); };
+  ['dragover','dragenter'].forEach(t => $('#uDrop').addEventListener(t, e => { e.preventDefault(); $('#uDrop').classList.add('on'); }));
+  ['dragleave','drop'].forEach(t => $('#uDrop').addEventListener(t, () => $('#uDrop').classList.remove('on')));
+  $('#uDrop').addEventListener('drop', e => { e.preventDefault(); const f = [...e.dataTransfer.files].find(x => /^image\//.test(x.type)); if (f) takeImage(f); });
+  $('#uSglBtn').onclick = () => $('#uSgl').click();
+  $('#uSgl').onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    if (!/\.sgl$/i.test(f.name)){ msg('這不是 .sgl 檔。請在 SculptGL 用「儲存 .sgl」。', true); return; }
+    if (f.size > 30 * 1048576){ msg('3D 檔太大（超過 30 MB）。', true); return; }
+    up.sgl = f; up.sglName = f.name + '（' + (f.size / 1048576).toFixed(1) + ' MB）'; $('#uSglName').textContent = up.sglName; msg('');
+  };
+  $('#uGo').onclick = e => doUpload(e.currentTarget);
+}
+function msg(t, bad){ const m = $('#uMsg'); if (m){ m.className = 'msg' + (t ? (bad ? ' bad' : ' ok') : ''); m.textContent = t; } }
+document.addEventListener('paste', e => {
+  if (view !== 'student' || STEPS[curStep].key !== 'up' || !API_URL) return;
+  const item = [...(e.clipboardData ? e.clipboardData.items : [])].find(i => /^image\//.test(i.type));
+  if (item){ e.preventDefault(); takeImage(item.getAsFile()); }
+});
+function loadImg(file){ return new Promise((res, rej) => { const u = URL.createObjectURL(file); const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('讀不到這張圖片')); im.src = u; }); }
+function drawTo(im, max, q){
+  const s = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight));
+  const c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * s); c.height = Math.round(im.naturalHeight * s);
+  const g = c.getContext('2d'); g.fillStyle = '#1b1e23'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', q);
+}
+async function takeImage(file){
+  try {
+    const im = await loadImg(file);
+    up.jpgURL = drawTo(im, 1600, .85);
+    let q = .72, t = drawTo(im, 360, q); while (t.length > 44000 && q > .3){ q -= .1; t = drawTo(im, 360, q); }
+    if (t.length > 44000) t = drawTo(im, 240, .5);
+    up.thumb = t; up.jpg = true;
+    $('#uDrop').innerHTML = `<img src="${up.jpgURL}" alt="作品預覽">`; msg('圖片已準備好。');
+  } catch(err){ msg(err.message, true); }
+}
+async function doUpload(btn){
+  if (up.busy) return;
+  if (!me.name){ openReg(); return; }
+  up.title = $('#uTitle').value.trim();
+  if (!up.title){ msg('請寫作品名稱。', true); $('#uTitle').focus(); return; }
+  if (!up.jpg){ msg('請加入作品圖片（可以按 Ctrl+V 貼上截圖）。', true); return; }
+  if (!up.sgl && !(up.noSglOk && Date.now() - up.noSglOk < 10000)){ up.noSglOk = Date.now(); msg('未揀 3D 檔（.sgl）。想只上載圖片，請在 10 秒內再按一次「上載作品」。', true); return; }
+  up.busy = true; btn.disabled = true; msg('上載中……大檔案需時約 10 至 30 秒，請不要關閉網頁。');
+  try {
+    const sgl = up.sgl ? bytesToB64(new Uint8Array(await up.sgl.arrayBuffer())) : '';
+    const r = await apiPost({ action:'upload', name: me.name, cls: me.cls, num: me.num, title: up.title, jpg: up.jpgURL.split(',')[1], thumb: up.thumb, sgl });
+    if (!r.ok) throw new Error(r.error || '上載失敗');
+    S.set('sg-last', { t: Date.now(), title: up.title, id: r.id });
+    doneSteps.up = true; S.set('sg-done', doneSteps); renderNav();
+    msg('上載成功！可以到展覽館看看你的作品。'); toast('上載成功');
+  } catch(err){ msg('上載失敗：' + err.message + '。請再試一次，或請老師幫忙。', true); }
+  finally { up.busy = false; btn.disabled = false; }
+}
+
+/* ===== 看大圖 ===== */
+let viewing = null;
+function showImage(src, title, by, work){
+  viewing = work;
+  $('#vTitle').textContent = title; $('#vBy').textContent = by; $('#vImg').src = src; $('#vNote').textContent = '';
+  $('#vSgl').hidden = !(work && work.hasSgl);
+  $('#mView').hidden = false;
+  if (work && API_URL){
+    $('#vNote').textContent = '載入原圖中……';
+    apiGet({ action:'file', id: work.id, kind:'jpg' }).then(r => { if (viewing !== work) return; if (r.ok){ $('#vImg').src = 'data:image/jpeg;base64,' + r.b64; $('#vNote').textContent = work.hasSgl ? '下載 3D 檔後，在 SculptGL 按「檔案」→ 匯入，就可以打開。' : ''; } else $('#vNote').textContent = ''; }).catch(() => { $('#vNote').textContent = ''; });
+  }
+}
+$('#vClose').onclick = () => { $('#mView').hidden = true; viewing = null; };
+$('#mView').addEventListener('click', e => { if (e.target.id === 'mView'){ $('#mView').hidden = true; viewing = null; } });
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#mView').hidden){ $('#mView').hidden = true; viewing = null; } });
+$('#vSgl').onclick = async () => {
+  const w = viewing; if (!w) return; const b = $('#vSgl'); b.disabled = true; b.textContent = '下載中……';
+  try { const r = await apiGet({ action:'file', id: w.id, kind:'sgl' }); if (!r.ok) throw new Error(r.error); saveBlob(b64ToBlob(r.b64, 'application/octet-stream'), r.name || 'work.sgl'); }
+  catch(err){ toast('下載失敗，請再試'); }
+  finally { b.disabled = false; b.textContent = '下載 3D 檔（.sgl）'; }
+};
+
+/* ===== 展覽館 ===== */
+let works = [], gTimer = null;
+const workBy = w => `${w.cls} 班 ${w.num} 號`;
+async function loadGallery(){
+  if (!API_URL){ $('#gGrid').innerHTML = '<div class="empty">展覽館未設定。請老師先完成 Google Apps Script 設定。</div>'; return; }
+  try {
+    const r = await apiGet({ action:'list' });
+    if (!r.ok) throw new Error(r.error);
+    works = r.works.sort((a, b) => b.time - a.time); renderGallery();
+  } catch(err){ $('#gGrid').innerHTML = '<div class="empty">讀取作品失敗，請按「重新整理」再試。</div>'; }
+}
+function renderGallery(){
+  const cur = $('#gCls').value, classes = [...new Set(works.map(w => String(w.cls)))].sort();
+  $('#gCls').innerHTML = '<option value="">全部班別</option>' + classes.map(c => `<option${c === cur ? ' selected' : ''}>${esc(c)}</option>`).join('');
+  const list = works.filter(w => (!$('#gCls').value || String(w.cls) === $('#gCls').value) && (!$('#gStar').checked || w.star));
+  $('#gCount').textContent = `共 ${list.length} 件作品`;
+  $('#gGrid').innerHTML = list.length ? list.map(w => `<button class="card gcard" data-id="${esc(w.id)}"><div class="pic" style="background-image:url('${w.thumb}')">${w.star ? '<span class="star">★ 老師精選</span>' : ''}</div><div class="meta"><b>${esc(w.title || '未命名')}</b><span class="muted small">${esc(workBy(w))}</span></div></button>`).join('')
+    : `<div class="empty">${works.length ? '沒有符合的作品。' : '未有作品。上載後就會在這裏出現。'}</div>`;
+  document.querySelectorAll('.gcard').forEach(b => b.onclick = () => { const w = works.find(x => x.id === b.dataset.id); if (w) showImage(w.thumb, w.title || '未命名', workBy(w), w); });
+}
+$('#gCls').onchange = renderGallery; $('#gStar').onchange = renderGallery; $('#gRefresh').onclick = loadGallery;
+
+/* ===== 老師 ===== */
+let tWorks = [], pin = SS.get('sg-pin');
+const LEVELS = [['圓滿完成','l1'],['部分完成','l2'],['未完成','l3']];
+function renderTeacher(){
+  const body = $('#tBody');
+  if (!API_URL){
+    body.innerHTML = `<div class="notice"><b>未設定上載後台。</b>只需要做一次：
+      <ol>
+        <li>打開 <a href="https://script.google.com" target="_blank" rel="noopener">script.google.com</a>，按「新增專案」。</li>
+        <li>按下面「複製後台程式碼」，貼上取代原有內容。把 <code>TEACHER_PIN</code> 改成你的老師密碼。</li>
+        <li>按「部署」→「新增部署作業」→ 類型揀「網頁應用程式」，執行身分「我」，誰可以存取「所有人」，按「部署」並授權。</li>
+        <li>複製以 /exec 結尾的網址，交給 Claude 放入網頁。</li>
+      </ol>
+      <div class="row" style="margin-top:10px"><button class="btn primary" id="cpCode">複製後台程式碼</button><a class="btn" href="apps-script.gs" target="_blank" rel="noopener">查看程式碼</a></div></div>`;
+    $('#cpCode').onclick = async () => {
+      try { const t = await (await fetch('apps-script.gs')).text(); await navigator.clipboard.writeText(t); toast('已複製後台程式碼'); }
+      catch(e){ toast('複製失敗，請按「查看程式碼」再自行複製'); }
+    };
+    return;
+  }
+  if (!pin){
+    body.innerHTML = `<form class="login" id="pinForm"><h3>輸入老師密碼</h3><input class="txt" id="pinIn" type="password" autocomplete="off" inputmode="numeric"><button class="btn primary">登入</button><p class="msg bad" id="pinMsg"></p></form>`;
+    $('#pinForm').onsubmit = async e => {
+      e.preventDefault(); const p = $('#pinIn').value.trim(); if (!p) return;
+      try { const r = await apiPost({ action:'checkpin', pin: p }); if (r.ok){ pin = p; SS.set('sg-pin', p); renderTeacher(); } else $('#pinMsg').textContent = '密碼不正確。'; }
+      catch(err){ $('#pinMsg').textContent = '連線失敗，請再試。'; }
+    };
+    setTimeout(() => $('#pinIn') && $('#pinIn').focus(), 50);
+    return;
+  }
+  $('#tRefresh').hidden = false;
+  body.innerHTML = `<div class="stats" id="tStats"></div>
+    <div class="filters"><select class="txt" id="tCls" aria-label="班別"></select>
+      <select class="txt" id="tShow" aria-label="顯示"><option value="">全部作品</option><option value="todo">未評分</option><option value="star">★ 精選</option></select>
+      <select class="txt" id="tSort" aria-label="排序"><option value="num">按班別班號</option><option value="time">按上載時間</option></select></div>
+    <div class="grid" id="tGrid"><div class="empty">載入中……</div></div>`;
+  ['tCls','tShow','tSort'].forEach(id => $('#' + id).onchange = renderTList);
+  loadTeacher();
+}
+async function loadTeacher(){
+  try {
+    const r = await apiGet({ action:'tlist', pin });
+    if (!r.ok){ if (r.error === 'pin'){ pin = ''; SS.set('sg-pin', ''); renderTeacher(); return; } throw new Error(r.error); }
+    tWorks = r.works; renderTList();
+  } catch(err){ const g = $('#tGrid'); if (g) g.innerHTML = '<div class="empty">讀取失敗，請按「重新整理」。</div>'; }
+}
+function renderTList(){
+  const cur = $('#tCls').value, classes = [...new Set(tWorks.map(w => String(w.cls)))].sort();
+  $('#tCls').innerHTML = '<option value="">全部班別</option>' + classes.map(c => `<option${c === cur ? ' selected' : ''}>${esc(c)}</option>`).join('');
+  const show = $('#tShow').value, sort = $('#tSort').value;
+  let list = tWorks.filter(w => (!$('#tCls').value || String(w.cls) === $('#tCls').value) && (show !== 'todo' || !w.level) && (show !== 'star' || w.star));
+  list.sort((a, b) => sort === 'time' ? b.time - a.time : (String(a.cls) === String(b.cls) ? a.num - b.num : (String(a.cls) < String(b.cls) ? -1 : 1)));
+  const n = tWorks.length, marked = tWorks.filter(w => w.level).length, stars = tWorks.filter(w => w.star).length;
+  $('#tStats').innerHTML = `<div>已上載<b>${n}</b></div><div>已評分<b>${marked}</b></div><div>★ 精選<b>${stars}</b></div>`;
+  $('#tGrid').innerHTML = list.length ? list.map(w => `<article class="card tcard" data-id="${esc(w.id)}">
+      <div class="pic" style="background-image:url('${w.thumb}')" role="button" tabindex="0" aria-label="看大圖"></div>
+      <div class="body">
+        <div><b style="font-family:var(--f-display);font-size:17px">${esc(w.title || '未命名')}</b><div class="who">${esc(w.cls)} 班 ${w.num} 號 · ${esc(w.name)}${w.hasSgl ? '' : ' · <span style="color:var(--warn)">沒有 3D 檔</span>'}</div></div>
+        <div class="lvls">${LEVELS.map(([l, c]) => `<button type="button" class="${c}" data-lv="${l}" aria-pressed="${w.level === l}">${l}</button>`).join('')}</div>
+        <div class="row"><button type="button" class="starbtn" aria-pressed="${!!w.star}">★ 精選</button><span class="muted small">頒獎候選</span></div>
+        <input class="txt" data-cm placeholder="評語（選填）" value="${esc(w.comment || '')}" maxlength="100" aria-label="評語">
+      </div></article>`).join('') : '<div class="empty">沒有符合的作品。</div>';
+  document.querySelectorAll('.tcard').forEach(card => {
+    const w = tWorks.find(x => x.id === card.dataset.id);
+    const pic = card.querySelector('.pic');
+    pic.onclick = () => showImage(w.thumb, w.title || '未命名', `${w.cls} 班 ${w.num} 號 · ${w.name}`, w);
+    pic.onkeydown = e => { if (e.key === 'Enter') pic.onclick(); };
+    card.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => { const v = w.level === b.dataset.lv ? '' : b.dataset.lv; saveMark(w, { level: v }); });
+    card.querySelector('.starbtn').onclick = () => saveMark(w, { star: !w.star });
+    const cm = card.querySelector('[data-cm]'); cm.onchange = () => saveMark(w, { comment: cm.value }, true);
+  });
+}
+async function saveMark(w, patch, quiet){
+  const old = { level: w.level, star: w.star, comment: w.comment };
+  Object.assign(w, patch); if (!quiet) renderTList();
+  try { const r = await apiPost(Object.assign({ action:'mark', pin, id: w.id }, patch)); if (!r.ok) throw new Error(r.error); toast('已儲存'); }
+  catch(err){ Object.assign(w, old); renderTList(); toast('儲存失敗，請再試'); }
+}
+$('#tRefresh').onclick = loadTeacher;
+
+/* ===== 切換頁面 ===== */
+let view = 'student';
+function route(){
+  const h = location.hash.replace('#', '');
+  view = h === 'gallery' ? 'gallery' : h === 'teacher' ? 'teacher' : 'student';
+  $('#v-student').hidden = view !== 'student'; $('#v-gallery').hidden = view !== 'gallery'; $('#v-teacher').hidden = view !== 'teacher';
+  $('#mReg').hidden = !(view === 'student' && !me.name);
+  clearInterval(gTimer);
+  if (view === 'gallery'){ loadGallery(); gTimer = setInterval(() => { if ($('#mView').hidden) loadGallery(); }, 30000); }
+  if (view === 'teacher') renderTeacher();
+  renderTop();
+}
+window.addEventListener('hashchange', route);
+if (!(curStep >= 0 && curStep < STEPS.length)) curStep = 0;
+renderNav(); renderStep(); route();
+})();
+</script>
+</body>
+</html>
