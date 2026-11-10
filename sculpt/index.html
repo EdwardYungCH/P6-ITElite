@@ -340,7 +340,18 @@ function renderTop(){
 function openReg(){
   $('#mReg').hidden = false;
   openPicker({ box: $('#regBox'), eyebrow: '歡迎來到 3D 造型工作室', nick: false, current: me.name ? me : null,
-    onDone(p){ me = { name: p.name, cls: p.cls, num: p.num, grp: p.grp }; S.set('sg-me', me); $('#mReg').hidden = true; renderTop(); if (STEPS[curStep].key === 'up') renderStep(); } });
+    onDone(p){
+      const changed = me.name && (me.cls !== p.cls || Number(me.num) !== Number(p.num));
+      me = { name: p.name, cls: p.cls, num: p.num, grp: p.grp }; S.set('sg-me', me); $('#mReg').hidden = true;
+      if (changed){
+        /* 換了另一位同學：步驟由頭開始，SculptGL 重新載入一個新球體 */
+        doneSteps = {}; S.set('sg-done', doneSteps); S.set('sg-last', null);
+        up = { title:'', jpg:null, jpgURL:'', thumb:'', sgl:null, sglName:'', busy:false };
+        const f = $('#sg'); f.src = f.src;
+        go(0);
+      } else if (STEPS[curStep].key === 'up') renderStep();
+      renderTop();
+    } });
 }
 
 /* ===== 教學步驟 1 → 2 → 3 → 4（a b c）→ 5 → 上載 ===== */

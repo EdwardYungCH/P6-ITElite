@@ -1221,17 +1221,41 @@ function loop(ts){
 }
 
 /* ===== 學生頁 ===== */
-let draft = S.get('gd-draft', null);
-if (!draft || !draft.d || !Array.isArray(draft.d.sprites) || draft.d.sprites.length < 3) draft = { d: defaultDesign(0), plays: 0, best: 0 };
-if (!Array.isArray(draft.d.p)){ const o = draft.d; draft.d = Object.assign(defaultDesign(0), { cls:o.cls, num:o.num, nick:o.nick, title:o.title, desc:o.desc, sprites:o.sprites, bg:o.bg ?? 0 }); }
-draft.d = Object.assign(defaultDesign(draft.d.type || 0), draft.d);
-if (draft.d.sprites.length === 3) draft.d.sprites.push(SP.gift.slice());
-if (!Array.isArray(draft.d.frames2) || draft.d.frames2.length !== 4) draft.d.frames2 = [null,null,null,null];
-if (!Array.isArray(draft.d.music) || draft.d.music.length !== 8) draft.d.music = [0,0,0,0,0,0,0,0];
-if (!Array.isArray(draft.d.stickers)) draft.d.stickers = [];
+function normDraft(dr){
+  if (!dr || !dr.d || !Array.isArray(dr.d.sprites) || dr.d.sprites.length < 3) dr = { d: defaultDesign(0), plays: 0, best: 0 };
+  if (!Array.isArray(dr.d.p)){ const o = dr.d; dr.d = Object.assign(defaultDesign(0), { cls:o.cls, num:o.num, nick:o.nick, title:o.title, desc:o.desc, sprites:o.sprites, bg:o.bg ?? 0 }); }
+  dr.d = Object.assign(defaultDesign(dr.d.type || 0), dr.d);
+  if (dr.d.sprites.length === 3) dr.d.sprites.push(SP.gift.slice());
+  if (!Array.isArray(dr.d.frames2) || dr.d.frames2.length !== 4) dr.d.frames2 = [null,null,null,null];
+  if (!Array.isArray(dr.d.music) || dr.d.music.length !== 8) dr.d.music = [0,0,0,0,0,0,0,0];
+  if (!Array.isArray(dr.d.stickers)) dr.d.stickers = [];
+  return dr;
+}
+let draft = normDraft(S.get('gd-draft', null));
 const D = () => draft.d;
 const TT = () => TYPES[D().type];
-let draftT; function saveDraft(){ clearTimeout(draftT); draftT = setTimeout(() => S.set('gd-draft', draft), 250); }
+/* 每位同學的作品分開儲存：同一部電腦，A 組同學走後 B 組同學登入，會由新作品開始 */
+const ownerKey = (cls, num) => 'gd-draft:' + cls + '-' + num;
+function flushDraft(){ clearTimeout(draftT); S.set('gd-draft', draft); if (draft.d.cls) S.set(ownerKey(draft.d.cls, draft.d.num), draft); }
+let draftT; function saveDraft(){ clearTimeout(draftT); draftT = setTimeout(flushDraft, 250); }
+function switchStudent(p){
+  const nick = p.nick || (rosterName(p.cls, p.num) ? '' : (p.name || '').slice(0, 6));
+  const same = D().cls === p.cls && Number(D().num) === Number(p.num);
+  if (!same){
+    if (D().cls) flushDraft();
+    draft = normDraft(S.get(ownerKey(p.cls, p.num), null));
+    if (!D().cls){ draft.plays = 0; draft.best = 0; }
+  }
+  Object.assign(D(), { cls: p.cls, num: p.num, nick });
+  flushDraft();
+  if (!same){
+    undo.length = 0; curSlot = 0; curFrame = 0;
+    renderTypes(); buildRules(); syncRules(); renderPower(); syncLook(); renderSeq(); renderSlots(); renderFrames(); drawEditor(); renderHint(); updateStats();
+    G1.reset(); activeGame = G1;
+    const t1 = document.querySelector('.tab[data-tab=type]'); if (t1) t1.click();
+  }
+  renderWho(); renderSubmit();
+}
 
 function renderWho(){
   const d = D(), el = $('#who');
@@ -1245,7 +1269,7 @@ function openReg(){
   const d = D();
   $('#mReg').hidden = false;
   openPicker({ box: $('#regBox'), eyebrow: '歡迎來到遊戲工作室', nick: true, current: d.cls ? { cls: d.cls, num: d.num, nick: d.nick } : null,
-    onDone(p){ Object.assign(D(), { cls: p.cls, num: p.num, nick: p.nick || (rosterName(p.cls, p.num) ? '' : (p.name || '').slice(0, 6)) }); $('#mReg').hidden = true; saveDraft(); renderWho(); renderSubmit(); } });
+    onDone(p){ $('#mReg').hidden = true; switchStudent(p); } });
 }
 
 // Tabs
