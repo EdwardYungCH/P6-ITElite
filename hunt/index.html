@@ -170,6 +170,22 @@ details summary{cursor:pointer;font-weight:900}
 .ed-grid textarea{min-height:64px;resize:vertical}
 .setrow{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
 .setrow label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:700;color:var(--muted);width:130px}
+.teamlist{margin-top:12px;background:rgba(255,255,255,.08);border:1px solid rgba(229,181,68,.5);border-radius:10px;padding:10px 12px;font-size:15px;color:#fff}
+.teamlist b{color:var(--gold)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chips button{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:3px 10px;cursor:pointer}
+.chips button[aria-pressed="true"]{background:#f3d6d2;border-color:var(--bad);color:var(--bad);text-decoration:line-through}
+.teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:14px}
+.team{border:2px solid var(--line);border-top:8px solid var(--c,var(--cover));border-radius:12px;padding:10px 12px;background:#fbfdfc;min-width:0}
+.team h4{margin:0 0 6px;font-size:16px}
+.team.unassigned{border-top-color:var(--bad);background:#fff7f5}
+.tm-row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:15px;padding:3px 0;border-top:1px dashed var(--line)}
+.tm-row:first-of-type{border-top:0}
+.tm-row select{font:inherit;font-size:13px;border:1px solid var(--line);border-radius:6px;padding:1px 4px;background:var(--card);color:var(--ink)}
+.numin{font:inherit;width:76px;border:2px solid var(--line);border-radius:8px;padding:5px 8px;background:var(--card);color:var(--ink)}
+.bigteams{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.bigteams .team h4{font-size:24px}
+.bigteams .tm-row{font-size:20px}
 .foot{margin-top:28px;font-size:14px}
 .foot a{color:var(--cover)}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;z-index:80;max-width:calc(100% - 32px)}
@@ -246,6 +262,15 @@ function twoStep(btn, fn){
   btn.dataset.label = btn.textContent; btn.dataset.armed = '1'; btn.textContent = '再按一次確定';
   setTimeout(() => { if (btn.dataset.armed){ delete btn.dataset.armed; btn.textContent = btn.dataset.label; } }, 3000);
 }
+/* 學生名單：只顯示班別、學號、姓氏和名字最後一個字（網站是公開的，不放全名） */
+const ROSTER = {
+  A: { label:'A組', time:'09:45–10:55', list:[['6A',3,'陳○知'],['6A',4,'鄭○靜'],['6A',6,'張○雋'],['6A',9,'關○盈'],['6B',17,'謝○悅'],['6B',18,'黃○齡'],['6B',20,'王○柔'],['6C',2,'陳○瀅'],['6C',4,'陳○晴'],['6C',5,'張○悠'],['6C',6,'黃○曦'],['6C',7,'許○堯'],['6C',13,'梁○宏'],['6C',14,'廖○皓'],['6C',16,'吳○浠'],['6C',20,'葉○希'],['6C',21,'余○霖'],['6D',1,'陳○霆'],['6D',3,'周○澄'],['6D',4,'鄭○澈'],['6E',10,'劉○澄'],['6E',17,'吳○樂'],['6E',18,'彭○銳'],['6E',19,'鄧○藍'],['6E',20,'曾○澄'],['6E',23,'黃○絢'],['6E',24,'黃○翰']] },
+  B: { label:'B組', time:'11:05–12:15', list:[['6A',10,'關○諭'],['6A',11,'賴○聰'],['6A',12,'劉○潼'],['6A',13,'李○浚'],['6A',17,'柯○瑜'],['6A',20,'溫○嵐'],['6A',21,'黃○澤'],['6B',1,'陳○濬'],['6B',2,'陳○昊'],['6B',5,'莊○榆'],['6B',6,'蔡○妍'],['6B',9,'葉○琳'],['6B',15,'吳○宏'],['6D',5,'周○穎'],['6D',10,'劉○彤'],['6D',12,'史○迪'],['5D',13,'戴○'],['6D',19,'余○燊'],['6E',1,'陳○彤'],['6E',3,'鄒○薇'],['6E',4,'周○樂'],['6E',5,'徐○堯'],['6E',6,'郭○唯'],['6E',7,'鄺○源'],['6E',9,'林○宇'],['6E',14,'李○盈'],['6E',15,'廖○雯']] }
+};
+const ALL = Object.entries(ROSTER).flatMap(([g, x]) => x.list.map(r => ({ id: r[0] + '-' + r[1], cls: r[0], num: r[1], name: r[2], grp: g })));
+const BYID = Object.fromEntries(ALL.map(p => [p.id, p]));
+const pName = id => { const p = BYID[id]; return p ? `${p.cls} ${p.num} ${p.name}` : id; };
+const pShort = id => { const p = BYID[id]; return p ? p.name : id; };
 const mmss = sec => { const s = Math.max(0, Math.floor(Math.abs(sec))); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
 function fnv(str){ let h = 2166136261; for (const ch of str){ h ^= ch.codePointAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
 function b64url(bytes){ let s = ''; for (const b of bytes) s += String.fromCharCode(b); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
@@ -274,14 +299,16 @@ function checkAns(input, hashes){ return candidates(input).some(c => c && hashes
 /* ================= 題目設定：老師版（有答案） → 學生版（答案只存加密） ================= */
 let TCFG = S.get('hunt-teacher', null);
 if (!TCFG || !Array.isArray(TCFG.s)) TCFG = sampleConfig();
+if (!Array.isArray(TCFG.teams)) TCFG.teams = [];
+if (!Array.isArray(TCFG.absent)) TCFG.absent = [];
 const saveT = () => S.set('hunt-teacher', TCFG);
 function compile(t){
-  return { m: t.m, g: t.g, demo: t.s.some(x => x.sample),
+  return { m: t.m, g: (t.teams && t.teams.length) || t.g, teams: (t.teams || []).map(x => x.slice()), demo: t.s.some(x => x.sample),
     s: t.s.map(x => ({ id: x.id, type: x.type, name: x.name, place: x.place, q: x.q, hint: x.hint, task: x.task,
       ans: String(x.a || '').split(/[\/／]/).map(v => v.trim()).filter(Boolean).map(ansHash) })) };
 }
 function packCfg(c){
-  const arr = [1, c.m, c.g, c.demo ? 1 : 0, c.s.map(x => [x.id, x.type, x.name, x.place, x.q, x.hint, x.task, x.ans])];
+  const arr = [1, c.m, c.g, c.demo ? 1 : 0, c.s.map(x => [x.id, x.type, x.name, x.place, x.q, x.hint, x.task, x.ans]), c.teams || []];
   return 'H1' + b64url(new TextEncoder().encode(JSON.stringify(arr)));
 }
 function unpackCfg(code){
@@ -291,7 +318,8 @@ function unpackCfg(code){
     if (arr[0] !== 1 || !Array.isArray(arr[4])) return null;
     const s = arr[4].slice(0, MAX_STATIONS).map(r => ({ id: String(r[0]), type: KINDS[r[1]] ? r[1] : 'find', name: String(r[2] || ''), place: String(r[3] || ''), q: String(r[4] || ''), hint: String(r[5] || ''), task: String(r[6] || ''), ans: Array.isArray(r[7]) ? r[7].map(String) : [] }));
     if (!s.length) return null;
-    return { m: Math.max(5, Math.min(90, +arr[1] || 30)), g: Math.max(1, Math.min(15, +arr[2] || 10)), demo: !!arr[3], s };
+    const teams = Array.isArray(arr[5]) ? arr[5].slice(0, 15).map(t => Array.isArray(t) ? t.map(String) : []) : [];
+    return { m: Math.max(5, Math.min(90, +arr[1] || 30)), g: teams.length || Math.max(1, Math.min(15, +arr[2] || 10)), teams, demo: !!arr[3], s };
   } catch(e){ return null; }
 }
 function withId(c){ c.id = fnv(packCfg(c)).toString(36); return c; }
@@ -337,6 +365,8 @@ const doneCount = () => ST().filter(x => st.s[x.id] && st.s[x.id].done).length;
 const elapsed = () => st.start ? ((st.finished || Date.now()) - st.start) / 1000 : 0;
 const stationScore = r => Math.max(MIN, FULL - STEP * (r.wrong + (r.hint ? 1 : 0) + (r.hint2 ? 1 : 0)));
 const colorOf = i => COLORS[i % COLORS.length];
+const teamOf = g => (CFG.teams && CFG.teams[g - 1]) || [];
+function turnText(){ const t = teamOf(st.group); return t.length ? pShort(t[doneCount() % t.length]) + ' 操作' : '第 ' + ((doneCount() % 4) + 1) + ' 號隊員操作'; }
 
 /* ================= 學生畫面 ================= */
 let view = 'cover', curId = null, tick = null;
@@ -365,20 +395,23 @@ function renderCover(){
     <p class="sub">走遍校園 ${ST().length} 個地點，找出密碼，收集印章</p>
     <label>你們是第幾組？</label>
     <div class="gpick">${Array.from({ length: CFG.g }, (_, i) => `<button data-g="${i+1}" aria-pressed="${g === i+1}">${i+1}</button>`).join('')}</div>
+    <div class="teamlist" id="teamList" hidden></div>
     <label for="team">隊名（選填）</label>
     <input id="team" class="txt" maxlength="10" placeholder="例如 閃電小隊" value="${esc(st.team)}" autocomplete="off">
     <button class="btn gold" id="go">開始尋寶</button>
     <p class="msg" id="cmsg" style="color:#ffb3a6;text-align:center"></p>
     ${CFG.demo ? '<div class="demo">現在用的是範例題目。正式活動前，請老師在老師頁設定題目，再讓學生掃描開場 QR 碼。</div>' : ''}
     <ul class="rules">
-      <li>每組用一部 iPad 做護照，組員自己排 1 至 4 號，輪流操作。</li>
+      <li>每組用一部 iPad 做護照，${CFG.teams.length ? '按組員名單次序輪流操作' : '組員自己排 1 至 4 號，輪流操作'}。</li>
       <li>到達每個地點，按線索找出答案（密碼），輸入就可以蓋印章。</li>
       <li>有些站答對後，還要完成一個電腦挑戰。</li>
       <li>每站最高 ${FULL} 分，答錯或看提示會扣分。</li>
       <li>限時 ${CFG.m} 分鐘，時間到就回課室。</li>
     </ul>
   </div><p class="foot" style="text-align:center"><a href="#teacher">老師入口</a></p></div>`;
-  app.querySelectorAll('.gpick button').forEach(b => b.onclick = () => { g = +b.dataset.g; app.querySelectorAll('.gpick button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+  const showTeam = () => { const el = $('#teamList'), t = teamOf(g); el.hidden = !t.length; el.innerHTML = t.length ? `<b>第 ${g} 組組員（${t.length} 人）</b><div>${t.map(id => esc(pName(id))).join('、')}</div>` : ''; };
+  app.querySelectorAll('.gpick button').forEach(b => b.onclick = () => { g = +b.dataset.g; app.querySelectorAll('.gpick button').forEach(x => x.setAttribute('aria-pressed', x === b)); showTeam(); });
+  if (g) showTeam();
   $('#go').onclick = () => {
     if (!g){ $('#cmsg').textContent = '請先揀組別。'; return; }
     st.group = g; st.team = $('#team').value.trim(); if (!st.start) st.start = Date.now(); save();
@@ -394,10 +427,9 @@ function statusText(x, r){
 }
 function renderBook(){
   const left = CFG.m * 60 - elapsed();
-  const mem = (doneCount() % 4) + 1;
   app.innerHTML = topBar() + `<div class="wrap">
     ${left < 0 ? '<div class="banner">時間到！請立即返回課室，然後按下面「完成尋寶」。</div>' : ''}
-    <div class="row between"><h2>我的護照</h2><span class="small muted">下一站由第 ${mem} 號隊員操作</span></div>
+    <div class="row between"><h2>我的護照</h2><span class="small muted">下一站由 ${esc(turnText())}</span></div>
     <div class="visas">${ST().map((x, i) => {
       const r = st.s[x.id] || {};
       return `<button class="visa${r.done ? ' done' : ''}" data-id="${esc(x.id)}" style="--c:${colorOf(i)}">
@@ -419,11 +451,10 @@ function renderStation(){
   const i = ST().findIndex(s => s.id === curId); if (i < 0){ view = 'book'; return render(); }
   const x = ST()[i], r = rec(x.id), col = colorOf(i);
   const ch = CH[x.type];
-  const mem = r.done ? null : (doneCount() % 4) + 1;
   app.innerHTML = topBar() + `<div class="wrap" style="--c:${col}">
     <button class="btn sm" id="back">← 返回護照</button>
     <div class="sheet">
-      <div class="head"><span class="eyebrow">第 ${i+1} 站 · ${esc(x.place)}</span><h2>${esc(x.name)}</h2>${mem ? `<span class="turn">由第 ${mem} 號隊員操作</span>` : ''}</div>
+      <div class="head"><span class="eyebrow">第 ${i+1} 站 · ${esc(x.place)}</span><h2>${esc(x.name)}</h2>${r.done ? '' : `<span class="turn">由 ${esc(turnText())}</span>`}</div>
       <div id="body"></div>
     </div>
   </div>`;
@@ -652,16 +683,18 @@ function renderTeacher(){
       <div class="row" style="margin-top:10px;max-width:540px"><input id="pc" class="code" placeholder="XXXX-XXXX" style="flex:1;min-width:180px" autocomplete="off" autocapitalize="characters"><button class="btn primary" id="add">加入</button></div>
       <p class="msg" id="pm"></p>
       ${ranked.length ? `<div class="tbl"><table><tr><th>名次</th><th>組別</th><th>印章</th><th>分數</th><th>用時</th><th>核對碼</th><th></th></tr>
-        ${ranked.map((b, i) => `<tr><td class="num">${i+1}</td><td class="num">第 ${b.group} 組</td><td class="num">${popcount(b.mask)}/${n}</td><td class="num"><b>${b.score}</b></td><td class="num">${b.mins} 分</td><td class="num">${b.code}</td><td><button class="btn sm" data-del="${b.group}">刪除</button></td></tr>`).join('')}
+        ${ranked.map((b, i) => `<tr><td class="num">${i+1}</td><td class="num">第 ${b.group} 組${TCFG.teams[b.group - 1] ? `<br><span class="small muted" style="font-family:var(--f-body);white-space:normal">${TCFG.teams[b.group - 1].map(id => esc(pShort(id))).join('、')}</span>` : ''}</td><td class="num">${popcount(b.mask)}/${n}</td><td class="num"><b>${b.score}</b></td><td class="num">${b.mins} 分</td><td class="num">${b.code}</td><td><button class="btn sm" data-del="${b.group}">刪除</button></td></tr>`).join('')}
       </table></div>` : '<p class="muted small" style="margin:0">各組完成後，把 iPad 上的核對碼輸入這裏。同一組再輸入會覆蓋舊紀錄。名次按分數，同分比用時。</p>'}
     </section>
+
+    <section class="card" id="teamCard"></section>
 
     <section class="card">
       <h3>題目設定</h3>
       <p class="small muted" style="margin:4px 0 0">每個站揀一種類型：「找密碼」答對就蓋印章；「找密碼 → 解鎖挑戰」答對後要再完成一個電腦挑戰；「大使任務」由大使給完成碼。答案可以寫多個，用 / 分隔，例如「圓形/圓」。比對時不分大小寫和空格；答案是數字時，學生寫「八」或「8 盆」也算對。</p>
       <div class="setrow">
         <label>尋寶時間（分鐘）<input id="setM" type="number" min="5" max="90" value="${TCFG.m}"></label>
-        <label>組數<input id="setG" type="number" min="1" max="15" value="${TCFG.g}"></label>
+        <label>組數<input id="setG" type="number" min="1" max="15" value="${TCFG.teams.length || TCFG.g}" ${TCFG.teams.length ? 'disabled title="已分組，組數跟分組名單"' : ''}></label>
       </div>
       <div class="warnbox" id="warn" hidden></div>
       <div class="ed-list" id="edList"></div>
@@ -676,10 +709,10 @@ function renderTeacher(){
       <p class="small muted mono" id="qrUrl" style="word-break:break-all;margin:8px 0 0"></p>
     </section>
 
-    <details class="card"><summary>第三堂流程（45 分鐘，約 40 人分 10 組）</summary>
+    <details class="card"><summary>第三堂流程（45 分鐘，A、B 組合併上課）</summary>
       <div class="tbl"><table>
-        <tr><th>課前</th><td>在「題目設定」寫好每站的線索和答案，用「答案表」印給大使。第一堂作品要先匯入展覽館的電腦。</td></tr>
-        <tr><th>0–5 分</th><td>分組（兩班混合，每組 4 人），每組揀一部 iPad 做護照。投影開場 QR 碼，學生掃描並揀組別。說明規則和安全。</td></tr>
+        <tr><th>課前</th><td>在「分組」標示缺席同學並自動分組；在「題目設定」寫好每站的線索和答案，用「答案表」印給大使。第一堂作品要先匯入展覽館的電腦。最後產生開場 QR 碼。</td></tr>
+        <tr><th>0–5 分</th><td>投影「分組名單」，學生按組坐好，每組揀一部 iPad 做護照。投影開場 QR 碼，學生掃描並揀組別，畫面會顯示組員名單。說明規則和安全。</td></tr>
         <tr><th>5–35 分</th><td>出發尋寶。各組由不同的站開始，避免擠在同一處。</td></tr>
         <tr><th>35–40 分</th><td>回課室，各組按「完成尋寶」，老師輸入核對碼，投影計分板。</td></tr>
         <tr><th>40–45 分</th><td>頒獎：尋寶冠軍隊、人氣遊戲獎（第一堂作品投票）、最佳遊戲設計、挑戰達人獎、最佳 3D 作品、最投入學員。</td></tr>
@@ -687,7 +720,7 @@ function renderTeacher(){
     </details>
     <p class="foot"><a href="#">返回學生頁</a></p>
   </div>`;
-  renderEditor(); renderWarn();
+  renderEditor(); renderWarn(); renderTeams();
   const add = () => {
     const r = readCode($('#pc').value);
     if (!r || r.group < 1 || r.group > 15){ $('#pm').className = 'msg bad'; $('#pm').textContent = '核對碼不正確，請再看清楚（共 8 個字）。'; return; }
@@ -707,6 +740,63 @@ function renderTeacher(){
   $('#cpLink').onclick = () => { const u = studentURL(); try { navigator.clipboard.writeText(u).then(() => toast('已複製學生連結'), () => toast('複製失敗，請用 QR 碼')); } catch(e){ toast('複製失敗，請用 QR 碼'); } };
   if (qrShown) showQR();
 }
+/* ---------- 分組 ---------- */
+function makeTeams(n){
+  const absent = new Set(TCFG.absent);
+  const pool = ALL.filter(p => !absent.has(p.id)).map(p => ({ p, r: Math.random() }))
+    .sort((a, b) => a.p.cls.localeCompare(b.p.cls) || a.p.grp.localeCompare(b.p.grp) || a.r - b.r).map(x => x.p);
+  const teams = Array.from({ length: n }, () => []);
+  pool.forEach((p, i) => { const round = Math.floor(i / n), k = i % n; teams[round % 2 ? n - 1 - k : k].push(p.id); });
+  for (let i = teams.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [teams[i], teams[j]] = [teams[j], teams[i]]; }
+  return teams;
+}
+function teamsChanged(){
+  applyTeacherCfg(); renderTeams();
+  const g = $('#setG'); if (g){ g.value = TCFG.teams.length || TCFG.g; g.disabled = !!TCFG.teams.length; }
+  if (qrShown) showQR();
+}
+function renderTeams(){
+  const el = $('#teamCard'); if (!el) return;
+  const absent = new Set(TCFG.absent), present = ALL.filter(p => !absent.has(p.id));
+  const has = TCFG.teams.length > 0, n = has ? TCFG.teams.length : Math.min(15, Math.max(2, Math.round(present.length / 5.5)));
+  const placed = new Set(TCFG.teams.flat()), loose = present.filter(p => !placed.has(p.id)).map(p => p.id);
+  const sizes = n ? `每組 ${Math.floor(present.length / n)}${present.length % n ? '–' + Math.ceil(present.length / n) : ''} 人` : '';
+  const moveSel = (id, cur) => `<select data-move="${id}" aria-label="調組">${cur ? '' : '<option value="">未分組</option>'}${TCFG.teams.map((_, k) => `<option value="${k}"${k === cur - 1 ? ' selected' : ''}>第 ${k + 1} 組</option>`).join('')}</select>`;
+  const wasOpen = !!(el.querySelector('details') && el.querySelector('details').open);
+  el.innerHTML = `<h3>分組</h3>
+    <p class="small muted" style="margin:4px 0 0">名單共 ${ALL.length} 人（${Object.values(ROSTER).map(g => g.label + ' ' + g.list.length + ' 人').join('、')}）。先在「出席」點選缺席的同學，再按「自動分組」。系統會把不同班別、A 組和 B 組的同學平均分到各組。分好後可以用選單調組。分組改了，要重新產生開場 QR 碼。</p>
+    <div class="row" style="margin-top:10px"><label class="small" style="font-weight:700">組數 <input class="numin" id="teamN" type="number" min="2" max="15" value="${n}"></label>
+      <button class="btn primary" id="mkTeams">${has ? '重新自動分組' : '自動分組'}</button>
+      ${has ? '<a class="btn" href="#teams">投影分組名單</a><button class="btn sm" id="clrTeams">取消分組</button>' : ''}
+      <span class="small muted">出席 ${present.length} 人，${sizes}</span></div>
+    <details style="margin-top:10px"${wasOpen ? ' open' : ''}><summary>出席（缺席 ${absent.size} 人，點名字標示缺席）</summary>
+      <div class="chips">${ALL.map(p => `<button type="button" data-abs="${p.id}" aria-pressed="${absent.has(p.id)}">${esc(pName(p.id))}</button>`).join('')}</div></details>
+    ${has ? `<div class="teams">
+      ${loose.length ? `<div class="team unassigned"><h4>未分組（${loose.length} 人）</h4>${loose.map(id => `<div class="tm-row"><span>${esc(pName(id))}</span>${moveSel(id, 0)}</div>`).join('')}</div>` : ''}
+      ${TCFG.teams.map((t, k) => `<div class="team" style="--c:${colorOf(k)}"><h4>第 ${k + 1} 組 · ${t.length} 人</h4>${t.map(id => `<div class="tm-row"><span>${esc(pName(id))}</span>${moveSel(id, k + 1)}</div>`).join('')}</div>`).join('')}
+    </div>` : ''}`;
+  $('#mkTeams').onclick = e => {
+    const go = () => { const k = Math.max(2, Math.min(15, +$('#teamN').value || n)); TCFG.teams = makeTeams(k); teamsChanged(); toast(`已分成 ${k} 組`); };
+    if (has) twoStep(e.currentTarget, go); else go();
+  };
+  const clr = $('#clrTeams'); if (clr) clr.onclick = e => twoStep(e.currentTarget, () => { TCFG.teams = []; teamsChanged(); });
+  el.querySelectorAll('[data-abs]').forEach(b => b.onclick = () => {
+    const id = b.dataset.abs, set = new Set(TCFG.absent);
+    if (set.has(id)) set.delete(id); else { set.add(id); TCFG.teams = TCFG.teams.map(t => t.filter(x => x !== id)); }
+    TCFG.absent = [...set]; teamsChanged();
+  });
+  el.querySelectorAll('[data-move]').forEach(sel => sel.onchange = () => {
+    if (sel.value === '') return;
+    const id = sel.dataset.move, to = +sel.value;
+    TCFG.teams = TCFG.teams.map(t => t.filter(x => x !== id)); TCFG.teams[to].push(id); teamsChanged();
+  });
+}
+function renderTeamsView(){
+  const t = TCFG.teams;
+  app.innerHTML = `<div class="wrap" style="max-width:1200px"><div class="row between" style="margin-bottom:16px"><div><div class="eyebrow">第三堂 · 校園尋寶</div><h2 style="font-size:34px">分組名單</h2></div><a class="btn" href="#teacher">返回控制台</a></div>
+    ${t.length ? `<div class="bigteams">${t.map((m, k) => `<div class="team" style="--c:${colorOf(k)}"><h4>第 ${k + 1} 組</h4>${m.map(id => `<div class="tm-row"><span>${esc(pName(id))}</span></div>`).join('')}</div>`).join('')}</div>` : '<div class="card">未分組。請在老師控制台按「自動分組」。</div>'}</div>`;
+}
+
 function renderEditor(){
   const kindOpts = sel => Object.entries(KINDS).map(([k, v]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${v.label}</option>`).join('');
   $('#edList').innerHTML = TCFG.s.map((x, k) => `<div class="ed-st" data-k="${k}" style="--c:${colorOf(k)}">
@@ -755,6 +845,7 @@ function render(){
   window.scrollTo(0, 0);
   if (h === 'teacher'){ clearInterval(tick); return renderTeacher(); }
   if (h === 'answers' || h === 'posters'){ clearInterval(tick); return renderAnswers(); }
+  if (h === 'teams'){ clearInterval(tick); return renderTeamsView(); }
   if (st.cfg !== CFG.id) st = fresh();
   if (st.finished) view = 'done';
   else if (!st.group || !st.start) view = 'cover';

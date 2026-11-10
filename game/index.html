@@ -211,6 +211,24 @@ details.card summary{cursor:pointer;font-weight:900}
 .foot{margin-top:28px;font-size:14px}
 .foot a{color:var(--sky)}
 
+/* Login picker */
+.dialog.pk{width:min(720px,100%);--pk-bad:var(--tomato)}
+.pk-eye{font-size:12px;letter-spacing:.14em;color:var(--muted);font-weight:700}
+.pk-head{display:flex;justify-content:space-between;align-items:end;gap:10px;flex-wrap:wrap}
+.pk-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.pk-grp{font:inherit;border:3px solid var(--ink);border-radius:10px;background:var(--card);padding:20px 10px;cursor:pointer;display:grid;gap:4px;color:var(--ink);box-shadow:4px 4px 0 var(--ink)}
+.pk-grp b{font-family:var(--f-display);font-weight:400;font-size:30px;line-height:1.1}
+.pk-grp span{color:var(--muted);font-size:14px}
+.pk-grp:hover{background:var(--cream)}
+.pk-cls{display:grid;gap:6px}
+.pk-ch{font-weight:900;font-size:14px;color:var(--muted)}
+.pk-names{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px}
+.pk-name{font:inherit;font-size:16px;border:2px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);padding:7px 8px;cursor:pointer;display:flex;gap:8px;align-items:center;text-align:left}
+.pk-name:hover{border-color:var(--ink);background:var(--cream)}
+.pk-no{font-family:var(--f-display);background:var(--paper);border-radius:4px;padding:0 6px;min-width:30px;text-align:center;font-variant-numeric:tabular-nums}
+.pk-actions{display:flex;gap:10px;flex-wrap:wrap}
+.pk-grp:focus-visible,.pk-name:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+
 /* Advanced challenges */
 .adv{display:inline-block;font-size:12px;font-weight:700;background:var(--sun);color:var(--ink);border:2px solid var(--ink);border-radius:999px;padding:0 8px;vertical-align:middle;margin-left:6px;font-family:var(--f-body);line-height:1.5}
 .frames{margin:0 0 14px}
@@ -461,17 +479,7 @@ details.card summary{cursor:pointer;font-weight:900}
 
 <!-- 登記 -->
 <div class="modal" id="mReg" hidden>
-  <form class="dialog" id="regForm">
-    <div class="eyebrow">歡迎來到遊戲工作室</div>
-    <h2>先登記你的資料</h2>
-    <p class="muted small" style="margin:0">只需要班別和學號，老師用來頒獎。暱稱會顯示在展覽館。</p>
-    <label>班別<input id="rCls" list="clsList" maxlength="4" required placeholder="例如 6A" autocomplete="off"></label>
-    <datalist id="clsList"><option value="6A"></option><option value="6B"></option><option value="6C"></option><option value="6D"></option><option value="6E"></option></datalist>
-    <label>學號<input id="rNum" type="number" min="1" max="45" required inputmode="numeric"></label>
-    <label>作者暱稱（選填，最多 6 個字）<input id="rNick" maxlength="6" placeholder="例如 小明" autocomplete="off"></label>
-    <p class="msg" id="regMsg" style="color:var(--tomato)"></p>
-    <button class="btn primary" type="submit">開始設計</button>
-  </form>
+  <div class="dialog pk" id="regBox" role="dialog" aria-modal="true" aria-label="登記"></div>
 </div>
 
 <!-- 試玩 -->
@@ -615,6 +623,63 @@ function twoStep(btn, fn){
   setTimeout(() => { if (btn.dataset.armed){ delete btn.dataset.armed; btn.textContent = btn.dataset.label; } }, 3000);
 }
 const sameArr = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+
+/* 學生名單：只顯示班別、學號、姓氏和名字最後一個字（網站是公開的，不放全名） */
+const ROSTER = {
+  A: { label:'A組', time:'09:45–10:55', list:[['6A',3,'陳○知'],['6A',4,'鄭○靜'],['6A',6,'張○雋'],['6A',9,'關○盈'],['6B',17,'謝○悅'],['6B',18,'黃○齡'],['6B',20,'王○柔'],['6C',2,'陳○瀅'],['6C',4,'陳○晴'],['6C',5,'張○悠'],['6C',6,'黃○曦'],['6C',7,'許○堯'],['6C',13,'梁○宏'],['6C',14,'廖○皓'],['6C',16,'吳○浠'],['6C',20,'葉○希'],['6C',21,'余○霖'],['6D',1,'陳○霆'],['6D',3,'周○澄'],['6D',4,'鄭○澈'],['6E',10,'劉○澄'],['6E',17,'吳○樂'],['6E',18,'彭○銳'],['6E',19,'鄧○藍'],['6E',20,'曾○澄'],['6E',23,'黃○絢'],['6E',24,'黃○翰']] },
+  B: { label:'B組', time:'11:05–12:15', list:[['6A',10,'關○諭'],['6A',11,'賴○聰'],['6A',12,'劉○潼'],['6A',13,'李○浚'],['6A',17,'柯○瑜'],['6A',20,'溫○嵐'],['6A',21,'黃○澤'],['6B',1,'陳○濬'],['6B',2,'陳○昊'],['6B',5,'莊○榆'],['6B',6,'蔡○妍'],['6B',9,'葉○琳'],['6B',15,'吳○宏'],['6D',5,'周○穎'],['6D',10,'劉○彤'],['6D',12,'史○迪'],['5D',13,'戴○'],['6D',19,'余○燊'],['6E',1,'陳○彤'],['6E',3,'鄒○薇'],['6E',4,'周○樂'],['6E',5,'徐○堯'],['6E',6,'郭○唯'],['6E',7,'鄺○源'],['6E',9,'林○宇'],['6E',14,'李○盈'],['6E',15,'廖○雯']] }
+};
+const rosterName = (cls, num) => { for (const g of Object.values(ROSTER)){ const r = g.list.find(x => x[0] === String(cls) && x[1] === Number(num)); if (r) return r[2]; } return ''; };
+/* 登入：揀組別 → 揀名字 → 確認。opts: { box, eyebrow, nick:bool, current, onDone(p) } */
+function openPicker(opts){
+  const box = opts.box;
+  let grp = ROSTER[S.get('it-group', '')] ? S.get('it-group', '') : '';
+  let pick = null;
+  const manualLink = '<button type="button" class="linkbtn" data-manual>名單上沒有我</button>';
+  function stageGroup(){
+    box.innerHTML = `<div class="pk-eye">${esc(opts.eyebrow)}</div><h2>你是哪一組？</h2>
+      <div class="pk-groups">${Object.entries(ROSTER).map(([k, g]) => `<button type="button" class="pk-grp" data-g="${k}"><b>${g.label}</b><span>${g.time}</span></button>`).join('')}</div>${manualLink}`;
+    box.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { grp = b.dataset.g; S.set('it-group', grp); stageList(); });
+    bindManual();
+  }
+  function stageList(){
+    const g = ROSTER[grp]; const classes = [...new Set(g.list.map(r => r[0]))];
+    box.innerHTML = `<div class="pk-head"><div><div class="pk-eye">${esc(opts.eyebrow)}</div><h2>${g.label}：揀你的名字</h2></div><button type="button" class="linkbtn" data-chg>不是${g.label}？換組</button></div>
+      ${classes.map(c => `<div class="pk-cls"><div class="pk-ch">${c} 班</div><div class="pk-names">${g.list.filter(r => r[0] === c).map(r => `<button type="button" class="pk-name" data-c="${r[0]}" data-n="${r[1]}" data-m="${esc(r[2])}"><span class="pk-no">${r[1]}</span>${esc(r[2])}</button>`).join('')}</div></div>`).join('')}
+      ${manualLink}`;
+    box.querySelector('[data-chg]').onclick = stageGroup;
+    box.querySelectorAll('.pk-name').forEach(b => b.onclick = () => { pick = { grp, cls: b.dataset.c, num: +b.dataset.n, name: b.dataset.m }; stageConfirm(); });
+    bindManual();
+  }
+  function stageConfirm(){
+    const cur = opts.current && opts.current.cls === pick.cls && Number(opts.current.num) === pick.num ? opts.current : null;
+    box.innerHTML = `<div class="pk-eye">${esc(opts.eyebrow)}</div><h2>你是 ${pick.cls} 班 ${pick.num} 號<br>${esc(pick.name)} 嗎？</h2>
+      ${opts.nick ? `<label>作者暱稱（選填，最多 6 個字，會顯示在展覽館）<input class="txt" id="pkNick" maxlength="6" autocomplete="off" placeholder="例如 小明" value="${esc(cur ? cur.nick || '' : '')}"></label>` : ''}
+      <div class="pk-actions"><button type="button" class="btn primary" data-yes>是，開始</button><button type="button" class="btn" data-no>不是，返回名單</button></div>`;
+    box.querySelector('[data-no]').onclick = stageList;
+    box.querySelector('[data-yes]').onclick = () => { if (opts.nick) pick.nick = $('#pkNick').value.trim().slice(0, 6); opts.onDone(pick); };
+  }
+  function stageManual(){
+    box.innerHTML = `<div class="pk-eye">${esc(opts.eyebrow)}</div><h2>輸入你的資料</h2>
+      <label>班別<input class="txt" id="pkCls" maxlength="4" autocomplete="off" placeholder="例如 6A"></label>
+      <label>學號<input class="txt" id="pkNum" type="number" min="1" max="45" inputmode="numeric"></label>
+      <label>姓名<input class="txt" id="pkName" maxlength="10" autocomplete="off"></label>
+      ${opts.nick ? '<label>作者暱稱（選填，最多 6 個字）<input class="txt" id="pkNick" maxlength="6" autocomplete="off"></label>' : ''}
+      <p class="msg" id="pkMsg" style="color:var(--pk-bad)"></p>
+      <div class="pk-actions"><button type="button" class="btn primary" data-ok>開始</button><button type="button" class="btn" data-back>返回名單</button></div>`;
+    box.querySelector('[data-back]').onclick = () => grp ? stageList() : stageGroup();
+    box.querySelector('[data-ok]').onclick = () => {
+      const cls = $('#pkCls').value.trim().toUpperCase(), num = parseInt($('#pkNum').value, 10), name = $('#pkName').value.trim();
+      if (!cls){ $('#pkMsg').textContent = '請填寫班別，例如 6A。'; return; }
+      if (!(num >= 1 && num <= 45)){ $('#pkMsg').textContent = '學號要是 1 至 45 的數字。'; return; }
+      if (!name){ $('#pkMsg').textContent = '請填寫姓名。'; return; }
+      opts.onDone({ grp: grp || '', cls, num, name: name.slice(0, 10), nick: opts.nick ? $('#pkNick').value.trim().slice(0, 6) : '' });
+    };
+  }
+  function bindManual(){ const m = box.querySelector('[data-manual]'); if (m) m.onclick = stageManual; }
+  grp ? stageList() : stageGroup();
+}
+
 
 /* ===== 作品碼（第 2 版：包含遊戲類型） ===== */
 const clamp = (v, a, b) => Math.max(a, Math.min(b, Math.round(Number(v) || 0)));
@@ -1173,18 +1238,15 @@ function renderWho(){
   if (view === 'play'){ el.innerHTML = ''; return; }
   if (view !== 'student'){ el.innerHTML = view === 'teacher' ? '<span class="chip">老師模式</span>' : '<span class="chip">展覽館</span>'; return; }
   if (!d.cls){ el.innerHTML = ''; return; }
-  el.innerHTML = `<span class="chip">${esc(d.cls)} · ${d.num} 號${d.nick ? ' · ' + esc(d.nick) : ''}</span><button class="linkbtn" id="bEditReg">修改</button>`;
+  el.innerHTML = `<span class="chip">${esc(d.cls)} · ${d.num} 號 · ${esc(rosterName(d.cls, d.num) || d.nick || '')}</span><button class="linkbtn" id="bEditReg">修改</button>`;
   $('#bEditReg').onclick = openReg;
 }
-function openReg(){ const d = D(); $('#rCls').value = d.cls; $('#rNum').value = d.num || ''; $('#rNick').value = d.nick; $('#regMsg').textContent = ''; $('#mReg').hidden = false; setTimeout(() => $('#rCls').focus(), 50); }
-$('#regForm').addEventListener('submit', e => {
-  e.preventDefault();
-  const cls = $('#rCls').value.trim().toUpperCase(), num = parseInt($('#rNum').value, 10);
-  if (!cls){ $('#regMsg').textContent = '請填寫班別，例如 6A。'; return; }
-  if (!(num >= 1 && num <= 45)){ $('#regMsg').textContent = '學號要是 1 至 45 的數字。'; return; }
-  Object.assign(D(), { cls, num, nick: $('#rNick').value.trim().slice(0, 6) });
-  $('#mReg').hidden = true; saveDraft(); renderWho(); renderSubmit();
-});
+function openReg(){
+  const d = D();
+  $('#mReg').hidden = false;
+  openPicker({ box: $('#regBox'), eyebrow: '歡迎來到遊戲工作室', nick: true, current: d.cls ? { cls: d.cls, num: d.num, nick: d.nick } : null,
+    onDone(p){ Object.assign(D(), { cls: p.cls, num: p.num, nick: p.nick || (rosterName(p.cls, p.num) ? '' : (p.name || '').slice(0, 6)) }); $('#mReg').hidden = true; saveDraft(); renderWho(); renderSubmit(); } });
+}
 
 // Tabs
 const PANES = ['type','draw','rules','look','submit'];
@@ -1505,7 +1567,7 @@ function addGame(code, demo){
 }
 function voteCounts(){ const c = {}; for (const id of Object.values(T.votes)) c[id] = (c[id] || 0) + 1; return c; }
 const totalOf = id => { const s = T.scores[id] || {}; return (s.c || 0) + (s.a || 0) + (s.p || 0); };
-const author = d => `${d.cls} · ${d.num} 號${d.nick ? ' · ' + d.nick : ''}`;
+const author = d => `${d.cls} · ${d.num} 號 · ${rosterName(d.cls, d.num) || '名單外'}${d.nick ? '（' + d.nick + '）' : ''}`;
 
 $('#bImp').onclick = () => {
   const txt = $('#imp').value; const codes = txt.match(/G[1-3][A-Za-z0-9_-]{50,}/g) || [];
@@ -1620,7 +1682,7 @@ function openPlayer(id, vote){
   modalD = g.d; modalId = id; modalVote = vote;
   const t = TYPES[g.d.type];
   $('#mTitle').textContent = g.d.title || '未命名';
-  $('#mBy').textContent = t.name + '　' + (vote ? (g.d.nick ? '作者：' + g.d.nick : g.d.cls + ' 班同學') : author(g.d));
+  $('#mBy').textContent = t.name + '　' + (vote ? ('作者：' + (g.d.nick || rosterName(g.d.cls, g.d.num) || g.d.cls + ' 班同學')) : author(g.d));
   $('#mDesc').textContent = g.d.desc;
   $('#mCtl').textContent = '電腦：' + t.key + '　iPad：' + t.touch;
   $('#mMsg').textContent = '';
@@ -1666,7 +1728,7 @@ function renderGallery(){
   const thumbs = {};
   $('#gGrid').innerHTML = shown.map(id => {
     const d = T.games[id].d; const bgUrl = thumbs[d.bg] = thumbs[d.bg] || (() => { const c = document.createElement('canvas'); c.width = 120; c.height = 90; c.getContext('2d').drawImage(renderBG(d.bg), 0, 60, 360, 270, 0, 0, 120, 90); return c.toDataURL(); })();
-    return `<button class="gcard${vid === id ? ' voted' : ''}" data-id="${esc(id)}"><div class="art" style="background-image:url(${bgUrl})"><span class="tag">${TYPES[d.type].name}</span><img alt="" src="${spriteURL(d.sprites[0], 6)}"></div><div class="meta"><b>${esc(d.title || '未命名')}</b><span>${esc(d.nick ? '作者：' + d.nick : d.cls + ' 班同學')}</span>${vid === id ? '<br><span class="vtag">你們這組投了這個</span>' : ''}</div></button>`;
+    return `<button class="gcard${vid === id ? ' voted' : ''}" data-id="${esc(id)}"><div class="art" style="background-image:url(${bgUrl})"><span class="tag">${TYPES[d.type].name}</span><img alt="" src="${spriteURL(d.sprites[0], 6)}"></div><div class="meta"><b>${esc(d.title || '未命名')}</b><span>${esc('作者：' + (d.nick || rosterName(d.cls, d.num) || d.cls + ' 班同學'))}</span>${vid === id ? '<br><span class="vtag">你們這組投了這個</span>' : ''}</div></button>`;
   }).join('');
   document.querySelectorAll('.gcard').forEach(b => b.onclick = () => openPlayer(b.dataset.id, true));
 }
@@ -1694,7 +1756,7 @@ function route(){
   view = h === 'teacher' ? 'teacher' : h === 'gallery' ? 'gallery' : /^G\d/.test(h) ? 'play' : 'student';
   $('#v-student').hidden = view !== 'student'; $('#v-teacher').hidden = view !== 'teacher'; $('#v-gallery').hidden = view !== 'gallery'; $('#v-play').hidden = view !== 'play';
   if (!$('#mPlay').hidden) closePlayer();
-  $('#mReg').hidden = !(view === 'student' && !D().cls);
+  if (view === 'student' && !D().cls) openReg(); else $('#mReg').hidden = true;
   if (view === 'teacher') renderTeacher();
   if (view === 'gallery') renderGallery();
   if (view === 'play') showPlay(h);
