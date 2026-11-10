@@ -225,7 +225,7 @@ input.txt,select.txt{font:inherit;color:var(--fg);background:var(--bg);border:2p
 /* ===== 老師設定 =====
    API_URL：Google Apps Script 網頁應用程式網址（以 /exec 結尾）。
    安裝方法見同一資料夾的 apps-script.gs。未設定時，上載和展覽館不會運作。 */
-const API_URL = '';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxeinv9O_GqOyqPn3YNTXR-_vkNRRMxh0IFqyv8IL72guHHu1rt67yV-46AwCm8_Vfo/exec';
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
