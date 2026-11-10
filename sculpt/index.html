@@ -52,7 +52,7 @@ input.txt,select.txt{font:inherit;color:var(--fg);background:var(--bg);border:2p
 
 /* Bench (student view) */
 .bench{display:grid;grid-template-columns:400px minmax(0,1fr);height:calc(100dvh - 58px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));min-height:520px}
-.bench.collapsed{grid-template-columns:0 minmax(0,1fr)}
+.bench.collapsed{grid-template-columns:minmax(0,1fr)}
 .bench.collapsed .panel{display:none}
 .panel{background:var(--panel);border-right:1px solid var(--line);overflow:auto;display:flex;flex-direction:column;min-width:0}
 .stage{position:relative;min-width:0;background:#111}
