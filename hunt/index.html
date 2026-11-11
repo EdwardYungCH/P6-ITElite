@@ -85,6 +85,12 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 @keyframes thump{0%{transform:scale(2.2) rotate(-30deg);opacity:0}60%{transform:scale(.92) rotate(-12deg);opacity:1}100%{transform:scale(1) rotate(-14deg);opacity:.9}}
 .stamp.big{animation:thump .45s ease-out both}
 .finish{margin-top:22px;display:flex;justify-content:center}
+.lvstar{color:#c98a00;letter-spacing:-1px}
+.visa.failed{opacity:.6;border-style:solid}
+.tries{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--muted);margin:2px 0 0}
+.tries .dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--muted);display:inline-block}
+.tries .dot.on{background:var(--ok);border-color:var(--ok)}
+.ed-st .tag.chk{background:#fde9e6;border-color:var(--bad)}
 
 /* Station */
 .sheet{background:var(--card);border:2px solid var(--ink);border-radius:16px;padding:22px;margin-top:14px}
@@ -92,7 +98,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .turn{display:inline-block;background:var(--warn);border-radius:999px;padding:3px 12px;font-size:14px;font-weight:700;margin:6px 0 0}
 .clue{border:3px dashed var(--c,var(--cover));border-radius:14px;padding:16px 18px;margin:6px 0 14px;background:#fbfdfc}
 .clue .lab{font-size:12px;letter-spacing:.14em;font-weight:700;color:var(--c,var(--cover))}
-.clue p{font-size:21px;font-weight:700;margin:4px 0 0;line-height:1.45}
+.clue p{font-size:21px;font-weight:700;margin:4px 0 0;line-height:1.45;white-space:pre-line}
 .unlock{display:grid;gap:10px;max-width:360px;margin-top:6px}
 .task{margin-top:16px}
 .bulbs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:16px 0;max-width:460px}
@@ -203,9 +209,12 @@ details summary{cursor:pointer;font-weight:900}
 
 const HUNT_URL = 'https://edwardyungch.github.io/P6-ITElite/hunt/';   // 開場 QR 碼用的網址
 const SALT = 'IT-ELITE-2026';
-const FULL = 20, STEP = 5, MIN = 5;      // 每站最高 20 分；答錯或看提示扣 5 分；最少 5 分
-const MAX_STATIONS = 10;
-const COLORS = ['#c8372d','#d9711c','#6a3fb5','#2459c4','#1f8a5b','#b83280','#0f7c8c','#8a5a00','#4a5bd1','#a33b6b'];
+const LV_PTS = [10, 20, 30];              // ★ 10 分、★★ 20 分、★★★ 30 分
+const TRY_PCT = [1, .6, .3];              // 第 1 次答對全數、第 2 次 60%、第 3 次 30%；三次都錯 0 分
+const MAX_TRIES = 3, HINT_PCT = .2;       // 看提示扣該題 20%
+const MAX_STATIONS = 16;
+const stars = lv => '★'.repeat(lv || 1);
+const COLORS = ['#c8372d','#d9711c','#6a3fb5','#2459c4','#1f8a5b','#b83280','#0f7c8c','#8a5a00','#4a5bd1','#a33b6b','#2f7d32','#b5541b','#3f51b5','#00838f','#8e24aa','#c62828'];
 
 /* ================= 站點類型 ================= */
 const KINDS = {
@@ -232,17 +241,25 @@ const CH = {
     map:['S..#..','##.#.#','.....#','.###..','...##.','##...G'], maxSteps:14, hint:'第一步：向右走兩格，然後向下。' }
 };
 
-/* ================= 範例題目（老師在老師頁修改） ================= */
-function sampleConfig(){
-  const S = (type, name, place, q, a, hint, task) => ({ id: rid(), type, name, place, q: q || '', a: a || '', hint: hint || '', task: task || '', sample: true });
+/* ================= 題庫：15 題自由選做（老師在老師頁修改） ================= */
+function bankConfig(){
+  const Q = (lv, name, place, q, a, hint, check) => ({ id: rid(), type: 'find', lv, name, place, q, a, hint: hint || '', task: '', sample: false, check: !!check });
   return { m: 30, g: 10, s: [
-    S('find', '盆栽偵探', '一樓走廊', '數一數一樓走廊牆邊有多少盆盆栽？', '8', '記得兩邊牆都要數。'),
-    S('bin', '電腦室守則', '電腦室', '電腦室牆上貼着的守則，第 3 句的第 5 個字是甚麼？', '機', '由第一句開始數，標點符號不計。'),
-    S('find', '開門時間', '圖書館門口', '圖書館星期一早上幾點開門？（只寫數字）', '8', '看看門口的開放時間表。'),
-    S('find', '校徽顏色', '禮堂', '禮堂舞台上的校徽有多少種顏色？', '3', ''),
-    S('find', '時鐘形狀', '校務處', '校務處門口的時鐘是甚麼形狀？', '圓形/圓', ''),
-    S('maze', '籃球架', '操場', '操場上一共有多少個籃球架？', '4', '記得數埋兩邊。'),
-    S('chk', '遊戲展覽館', '展覽館', '', 'VOTE', '', '用展覽館的電腦試玩第一堂同學設計的遊戲。全組商量，投票給最喜歡的一個。投票後，大使會給你們完成碼。')
+    Q(1, '神秘小屋', '地下', '地下有一間白色小屋，門外寫着它的名字。這間小屋叫甚麼名字？（英文）', 'AI Sport Zone', ''),
+    Q(1, '籃板牌子', '地下 · 籃球場', '學校籃球場的籃板是甚麼牌子？（英文）', 'H2SPORT、HSPORT', '看看籃板的左下角。'),
+    Q(2, '校徽書本', '地下', '學校校徽上一共有多少個書本圖案？', '9', '', true),
+    Q(2, '水池植物', '地下 · 禮堂旁', '禮堂旁的水池上，漂浮着甚麼植物？', '睡蓮', '它的葉子平平地浮在水面，名字和「睡覺」有關。'),
+    Q(2, '水火箭紀錄', '地下', '本校在 2013 年創下「最多水火箭同時發射」世界紀錄，一共發射了多少枚水火箭？', '1056', '牆上有兩塊紀錄牌，留意年份。'),
+    Q(2, '中藥圖鑑', '地下 · 中藥園', '中藥園「藥食同源」圖鑑上，在「石斛」上面的是哪一種藥材？', '枸杞', '石斛在圖鑑最左邊的第二行。'),
+    Q(3, '發明展', '地下', '本校同學曾參加日內瓦國際發明展並獲獎。證書上的日期是哪一天？（用 DD/MM/YYYY 格式作答，例如 05/01/2025）', '14/03/2026、14/3/2026', '證書是法文的：mars 即是三月。'),
+    Q(1, '烏龍茶', '地下 · 售賣機', '學校售賣機中，「淳茶舍烏龍茶」賣多少錢？（只寫數字）', '10', '', true),
+    Q(2, '新大樓', '地下', '本校新教學大樓落成至今有多少年？（找出落成碑記上的年份，再計算）', '20', '碑上的年份是用中文數字寫的。'),
+    Q(1, '掛牆植物', '1/F · 走廊', '一樓走廊牆上高高掛着的植物，一共有多少棵？', '6', '走廊兩邊都要看。', true),
+    Q(3, '工場算術', '1/F · 111 室', '（寫有 Light 的燈掣數目 + 空中拖板數目）÷ 冷氣機數目 = ？', '4', '冷氣機的數目，可以看電掣板上寫着 ROOM COOLER 的掣。', true),
+    Q(1, '1B 堂名', '2/F', '1B 課室的堂名是甚麼？', '蔡榮生堂', ''),
+    Q(3, '鍵盤密碼', '2/F · 電腦室', '破解密碼「△◯◇」：\nQ W E R △\n◯ S D F G\nC V ◇ N M', 'TAB', '看看電腦鍵盤，每一行由左至右是哪幾個字母？'),
+    Q(1, '圖書館', '3/F · 圖書館', '圖書館最遲幾點關門？', '5:15pm、5:15、17:15、下午5:15、下午5時15分', ''),
+    Q(2, '機械人場地', '3/F · N304 室', 'N304 室中間的機械人比賽場地，是屬於哪一個機械人比賽的？（英文）', 'VEX IQ', '')
   ] };
 }
 function rid(){ return Math.random().toString(36).slice(2, 7); }
@@ -298,17 +315,19 @@ function checkAns(input, hashes){ return candidates(input).some(c => c && hashes
 
 /* ================= 題目設定：老師版（有答案） → 學生版（答案只存加密） ================= */
 let TCFG = S.get('hunt-teacher', null);
-if (!TCFG || !Array.isArray(TCFG.s)) TCFG = sampleConfig();
+if (!TCFG || !Array.isArray(TCFG.s) || TCFG.s.every(x => x.sample)) TCFG = Object.assign(bankConfig(), TCFG && Array.isArray(TCFG.teams) ? { teams: TCFG.teams, absent: TCFG.absent || [] } : {});
+TCFG.s.forEach(x => { if (!(x.lv >= 1 && x.lv <= 3)) x.lv = 1; });
 if (!Array.isArray(TCFG.teams)) TCFG.teams = [];
 if (!Array.isArray(TCFG.absent)) TCFG.absent = [];
 const saveT = () => S.set('hunt-teacher', TCFG);
+const splitAns = a => String(a || '').split(/[、|｜\n]/).map(v => v.trim()).filter(Boolean);
 function compile(t){
   return { m: t.m, g: (t.teams && t.teams.length) || t.g, teams: (t.teams || []).map(x => x.slice()), demo: t.s.some(x => x.sample),
-    s: t.s.map(x => ({ id: x.id, type: x.type, name: x.name, place: x.place, q: x.q, hint: x.hint, task: x.task,
-      ans: String(x.a || '').split(/[\/／]/).map(v => v.trim()).filter(Boolean).map(ansHash) })) };
+    s: t.s.map(x => ({ id: x.id, type: x.type, lv: x.lv || 1, name: x.name, place: x.place, q: x.q, hint: x.hint, task: x.task,
+      ans: splitAns(x.a).map(ansHash) })) };
 }
 function packCfg(c){
-  const arr = [1, c.m, c.g, c.demo ? 1 : 0, c.s.map(x => [x.id, x.type, x.name, x.place, x.q, x.hint, x.task, x.ans]), c.teams || []];
+  const arr = [1, c.m, c.g, c.demo ? 1 : 0, c.s.map(x => [x.id, x.type, x.name, x.place, x.q, x.hint, x.task, x.ans, x.lv || 1]), c.teams || []];
   return 'H1' + b64url(new TextEncoder().encode(JSON.stringify(arr)));
 }
 function unpackCfg(code){
@@ -316,7 +335,7 @@ function unpackCfg(code){
     if (!/^H1/.test(code)) return null;
     const arr = JSON.parse(new TextDecoder().decode(fromB64url(code.slice(2))));
     if (arr[0] !== 1 || !Array.isArray(arr[4])) return null;
-    const s = arr[4].slice(0, MAX_STATIONS).map(r => ({ id: String(r[0]), type: KINDS[r[1]] ? r[1] : 'find', name: String(r[2] || ''), place: String(r[3] || ''), q: String(r[4] || ''), hint: String(r[5] || ''), task: String(r[6] || ''), ans: Array.isArray(r[7]) ? r[7].map(String) : [] }));
+    const s = arr[4].slice(0, MAX_STATIONS).map(r => ({ id: String(r[0]), type: KINDS[r[1]] ? r[1] : 'find', name: String(r[2] || ''), place: String(r[3] || ''), q: String(r[4] || ''), hint: String(r[5] || ''), task: String(r[6] || ''), ans: Array.isArray(r[7]) ? r[7].map(String) : [], lv: Math.max(1, Math.min(3, +r[8] || 1)) }));
     if (!s.length) return null;
     const teams = Array.isArray(arr[5]) ? arr[5].slice(0, 15).map(t => Array.isArray(t) ? t.map(String) : []) : [];
     return { m: Math.max(5, Math.min(90, +arr[1] || 30)), g: teams.length || Math.max(1, Math.min(15, +arr[2] || 10)), teams, demo: !!arr[3], s };
@@ -335,22 +354,22 @@ let CFG = null;
 })();
 const ST = () => CFG.s;
 
-/* 核對碼：組別、分數、用時、完成站點 + 檢查位，8 個字 */
+/* 核對碼：組別、分數、用時、完成站點 + 檢查位，10 個字 */
 const B32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 function h12(v){ return fnv(SALT + ':' + v) & 4095; }
 function makeCode(group, score, mins, mask){
-  const v = group + Math.min(score, 255) * 16 + Math.min(mins, 63) * 4096 + mask * 262144;
+  const v = group + Math.min(score, 511) * 16 + Math.min(mins, 63) * 8192 + mask * 524288;
   let n = v * 4096 + h12(v), s = '';
-  for (let i = 0; i < 8; i++){ s = B32[n % 32] + s; n = Math.floor(n / 32); }
-  return s.slice(0, 4) + '-' + s.slice(4);
+  for (let i = 0; i < 10; i++){ s = B32[n % 32] + s; n = Math.floor(n / 32); }
+  return s.slice(0, 5) + '-' + s.slice(5);
 }
 function readCode(str){
   const c = String(str).toUpperCase().replace(/O/g, '0').replace(/[IL]/g, '1').replace(/[^0-9A-Z]/g, '');
-  if (c.length !== 8) return null;
+  if (c.length !== 10) return null;
   let n = 0; for (const ch of c){ const k = B32.indexOf(ch); if (k < 0) return null; n = n * 32 + k; }
   const chk = n % 4096, v = Math.floor(n / 4096);
   if (h12(v) !== chk) return null;
-  return { group: v % 16, score: Math.floor(v / 16) % 256, mins: Math.floor(v / 4096) % 64, mask: Math.floor(v / 262144) % 1024, code: c.slice(0, 4) + '-' + c.slice(4) };
+  return { group: v % 16, score: Math.floor(v / 16) % 512, mins: Math.floor(v / 8192) % 64, mask: Math.floor(v / 524288) % 65536, code: c.slice(0, 5) + '-' + c.slice(5) };
 }
 const popcount = m => { let n = 0; while (m){ n += m & 1; m >>= 1; } return n; };
 
@@ -359,11 +378,19 @@ let st = S.get('hunt-state', null);
 const fresh = () => ({ cfg: CFG.id, group:0, team:'', start:0, finished:0, s:{} });
 if (!st || typeof st !== 'object' || !st.s || st.cfg !== CFG.id) st = fresh();
 const save = () => S.set('hunt-state', st);
-const rec = id => st.s[id] = st.s[id] || { unlocked:false, done:false, score:0, wrong:0, hint:false, hint2:false };
+const rec = id => st.s[id] = st.s[id] || { unlocked:false, done:false, failed:false, score:0, wrong:0, cw:0, hint:false, hint2:false };
 const total = () => ST().reduce((a, x) => a + (st.s[x.id] && st.s[x.id].done ? st.s[x.id].score : 0), 0);
 const doneCount = () => ST().filter(x => st.s[x.id] && st.s[x.id].done).length;
 const elapsed = () => st.start ? ((st.finished || Date.now()) - st.start) / 1000 : 0;
-const stationScore = r => Math.max(MIN, FULL - STEP * (r.wrong + (r.hint ? 1 : 0) + (r.hint2 ? 1 : 0)));
+const basePts = x => LV_PTS[(x.lv || 1) - 1];
+function stationScore(x, r){
+  const base = basePts(x); if (r.failed) return 0;
+  let p = base * TRY_PCT[Math.min(r.wrong || 0, MAX_TRIES - 1)];
+  p -= base * HINT_PCT * ((r.hint ? 1 : 0) + (r.hint2 ? 1 : 0));
+  p -= base * .1 * (r.cw || 0);
+  return Math.max(Math.round(base * .1), Math.round(p));
+}
+const failedCount = () => ST().filter(x => st.s[x.id] && st.s[x.id].failed).length;
 const colorOf = i => COLORS[i % COLORS.length];
 const teamOf = g => (CFG.teams && CFG.teams[g - 1]) || [];
 function turnText(){ const t = teamOf(st.group); return t.length ? pShort(t[doneCount() % t.length]) + ' 操作' : '第 ' + ((doneCount() % 4) + 1) + ' 號隊員操作'; }
@@ -392,7 +419,7 @@ function renderCover(){
   app.innerHTML = `<div class="wrap"><div class="cover">
     <div class="emblem">IT<br>精英班</div>
     <h1>校園尋寶護照</h1>
-    <p class="sub">走遍校園 ${ST().length} 個地點，找出密碼，收集印章</p>
+    <p class="sub">校園有 ${ST().length} 個地點，自由揀做，找出答案，收集印章</p>
     <label>你們是第幾組？</label>
     <div class="gpick">${Array.from({ length: CFG.g }, (_, i) => `<button data-g="${i+1}" aria-pressed="${g === i+1}">${i+1}</button>`).join('')}</div>
     <div class="teamlist" id="teamList" hidden></div>
@@ -403,9 +430,9 @@ function renderCover(){
     ${CFG.demo ? '<div class="demo">現在用的是範例題目。正式活動前，請老師在老師頁設定題目，再讓學生掃描開場 QR 碼。</div>' : ''}
     <ul class="rules">
       <li>每組用一部 iPad 做護照，${CFG.teams.length ? '按組員名單次序輪流操作' : '組員自己排 1 至 4 號，輪流操作'}。</li>
-      <li>到達每個地點，按線索找出答案（密碼），輸入就可以蓋印章。</li>
-      <li>有些站答對後，還要完成一個電腦挑戰。</li>
-      <li>每站最高 ${FULL} 分，答錯或看提示會扣分。</li>
+      <li>到達地點，按線索找出答案，答對就蓋印章。時間有限，未必做得晒，自己揀策略！</li>
+      <li>★ 10 分、★★ 20 分、★★★ 30 分。</li>
+      <li>每題最多答 3 次：第 1 次答對得全數，第 2 次得 60%，第 3 次得 30%，三次都錯就 0 分，不能再答。看提示扣 20%。</li>
       <li>限時 ${CFG.m} 分鐘，時間到就回課室。</li>
     </ul>
   </div><p class="foot" style="text-align:center"><a href="#teacher">老師入口</a></p></div>`;
@@ -421,6 +448,7 @@ function renderCover(){
 
 function statusText(x, r){
   if (r.done) return '已完成';
+  if (r.failed) return '三次答錯 · 0 分';
   if (x.type === 'chk') return '完成任務後找大使';
   if (r.unlocked) return '已找到密碼，挑戰未完成';
   return '未找到密碼';
@@ -432,17 +460,17 @@ function renderBook(){
     <div class="row between"><h2>我的護照</h2><span class="small muted">下一站由 ${esc(turnText())}</span></div>
     <div class="visas">${ST().map((x, i) => {
       const r = st.s[x.id] || {};
-      return `<button class="visa${r.done ? ' done' : ''}" data-id="${esc(x.id)}" style="--c:${colorOf(i)}">
+      return `<button class="visa${r.done ? ' done' : ''}${r.failed ? ' failed' : ''}" data-id="${esc(x.id)}" style="--c:${colorOf(i)}">
         <span class="no">第 ${i+1} 站</span><h3>${esc(x.name)}</h3><span class="place">地點：${esc(x.place)}</span>
-        <span class="kind">${KINDS[x.type].short}</span>
+        <span class="kind"><span class="lvstar">${stars(x.lv)}</span> ${basePts(x)} 分${x.type === 'find' ? '' : ' · ' + KINDS[x.type].short}</span>
         <span class="status">${statusText(x, r)}</span>
         ${r.done ? `<span class="stamp" style="color:${colorOf(i)}">${esc(x.name.slice(0, 5))}<span class="pts">+${r.score}</span></span>` : ''}
       </button>`; }).join('')}</div>
-    <div class="finish"><button class="btn primary" id="fin">${doneCount() === ST().length ? '全部完成！查看成績' : '完成尋寶'}</button></div>
+    <div class="finish"><button class="btn primary" id="fin">${doneCount() + failedCount() === ST().length ? '全部完成！查看成績' : '完成尋寶'}</button></div>
     <p class="small muted" style="text-align:center">未完成所有站也可以按「完成尋寶」。按了就不能再加分。</p>
   </div>`;
   app.querySelectorAll('.visa').forEach(b => b.onclick = () => { curId = b.dataset.id; view = 'station'; render(); });
-  $('#fin').onclick = e => { if (doneCount() === ST().length){ finish(); return; } twoStep(e.currentTarget, finish); };
+  $('#fin').onclick = e => { if (doneCount() + failedCount() === ST().length){ finish(); return; } twoStep(e.currentTarget, finish); };
   startClock();
 }
 function finish(){ if (!st.finished) st.finished = Date.now(); save(); view = 'done'; render(); }
@@ -454,7 +482,7 @@ function renderStation(){
   app.innerHTML = topBar() + `<div class="wrap" style="--c:${col}">
     <button class="btn sm" id="back">← 返回護照</button>
     <div class="sheet">
-      <div class="head"><span class="eyebrow">第 ${i+1} 站 · ${esc(x.place)}</span><h2>${esc(x.name)}</h2>${r.done ? '' : `<span class="turn">由 ${esc(turnText())}</span>`}</div>
+      <div class="head"><span class="eyebrow">第 ${i+1} 站 · ${esc(x.place)} · <span class="lvstar">${stars(x.lv)}</span> ${basePts(x)} 分</span><h2>${esc(x.name)}</h2>${r.done || r.failed ? '' : `<span class="turn">由 ${esc(turnText())}</span>`}</div>
       <div id="body"></div>
     </div>
   </div>`;
@@ -462,23 +490,27 @@ function renderStation(){
   const body = $('#body');
   startClock();
   if (r.done){ body.innerHTML = `<div class="result"><span class="stamp big" style="color:${col}">${esc(x.name.slice(0, 5))}<span class="pts">+${r.score}</span></span><p>這一站已經完成。</p></div>`; return; }
+  if (r.failed){ body.innerHTML = `<div class="result"><span class="stamp big" style="color:#8a969c">失敗<span class="pts">0</span></span><p>三次都答錯了，這題不能再答。去試其他題吧！</p><button class="btn primary" id="back3">返回護照</button></div>`; $('#back3').onclick = () => { view = 'book'; render(); }; return; }
 
   if (x.type === 'chk'){
     body.innerHTML = `<div class="clue"><div class="lab">任務</div><p>${esc(x.task)}</p></div>
       <div class="unlock"><label class="small" for="code"><b>完成任務後，輸入大使給你的完成碼</b></label><input id="code" class="code" autocomplete="off" autocapitalize="characters"><button class="btn primary" id="ok">確認</button><p class="msg" id="m"></p></div>`;
     const go = () => {
-      if (checkAns($('#code').value, x.ans)){ r.unlocked = true; complete(x, r, i, true); }
+      if (checkAns($('#code').value, x.ans)){ r.unlocked = true; complete(x, r, i); }
       else { $('#m').className = 'msg bad'; $('#m').textContent = '完成碼不正確，請向大使再確認一次。'; }
     };
     $('#ok').onclick = go; $('#code').onkeydown = e => { if (e.key === 'Enter') go(); };
     return;
   }
 
-  const worthLine = () => { const w = $('#worth'); if (w) w.textContent = `完成這站可得 ${stationScore(r)} 分`; };
+  const worthLine = () => {
+    const w = $('#worth'); if (w) w.textContent = `現在答對可得 ${stationScore(x, r)} 分`;
+    const t = $('#tries'); if (t){ const left = MAX_TRIES - (r.wrong || 0); t.innerHTML = '剩餘機會 ' + Array.from({ length: MAX_TRIES }, (_, k) => `<span class="dot${k < left ? ' on' : ''}"></span>`).join(''); }
+  };
   if (!r.unlocked){
     body.innerHTML = `<div class="clue"><div class="lab">線索 · 到${esc(x.place)}找答案</div><p>${esc(x.q)}</p></div>
-      <div class="unlock"><label class="small" for="ans"><b>答案（密碼）</b></label><input id="ans" class="ans" autocomplete="off"><button class="btn primary" id="ok">${x.type === 'find' ? '提交答案' : '提交答案，解鎖挑戰'}</button><p class="msg" id="m"></p></div>
-      <div class="row" style="margin-top:12px">${x.hint ? `<button class="btn sm" id="hint">${r.hint ? '提示' : '看提示（扣 ' + STEP + ' 分）'}</button>` : ''}<span class="small muted" id="worth"></span></div>
+      <div class="unlock"><label class="small" for="ans"><b>答案</b></label><input id="ans" class="ans" autocomplete="off"><button class="btn primary" id="ok">${x.type === 'find' ? '提交答案' : '提交答案，解鎖挑戰'}</button><p class="tries" id="tries"></p><p class="msg" id="m"></p></div>
+      <div class="row" style="margin-top:12px">${x.hint ? `<button class="btn sm" id="hint">${r.hint ? '提示' : '看提示（扣 20%）'}</button>` : ''}<span class="small muted" id="worth"></span></div>
       ${x.hint ? `<p class="small" id="hintText" ${r.hint ? '' : 'hidden'}><b>提示：</b>${esc(x.hint)}</p>` : ''}`;
     worthLine();
     if (x.hint) $('#hint').onclick = () => { if (!r.hint){ r.hint = true; save(); } $('#hintText').hidden = false; $('#hint').textContent = '提示'; worthLine(); };
@@ -488,7 +520,12 @@ function renderStation(){
       if (checkAns(v, x.ans)){
         if (x.type === 'find'){ complete(x, r, i); }
         else { r.unlocked = true; save(); toast('密碼正確！挑戰解鎖了'); renderStation(); }
-      } else { r.wrong++; save(); worthLine(); $('#m').className = 'msg bad'; $('#m').textContent = '答案不正確，再仔細找找看。'; }
+      } else {
+        r.wrong++;
+        if (r.wrong >= MAX_TRIES){ r.failed = true; save(); renderStation(); const b = document.querySelector('.bar'); if (b){ const tmp = document.createElement('div'); tmp.innerHTML = topBar(); b.replaceWith(tmp.firstElementChild); } return; }
+        save(); worthLine(); $('#ans').value = '';
+        $('#m').className = 'msg bad'; $('#m').textContent = `答錯了！還有 ${MAX_TRIES - r.wrong} 次機會。想清楚才答。`;
+      }
     };
     $('#ok').onclick = go; $('#ans').onkeydown = e => { if (e.key === 'Enter') go(); };
     return;
@@ -496,18 +533,18 @@ function renderStation(){
 
   body.innerHTML = `<p class="small muted" style="margin:0 0 6px">密碼正確！最後一關：<b>${esc(ch.title)}</b></p><p style="margin:0">${esc(ch.intro)}</p>
     <div class="task" id="task"></div>
-    <div class="row" style="margin-top:16px"><button class="btn sm" id="hint2">${r.hint2 ? '提示' : '看提示（扣 ' + STEP + ' 分）'}</button><span class="small muted" id="worth"></span></div>
+    <div class="row" style="margin-top:16px"><button class="btn sm" id="hint2">${r.hint2 ? '提示' : '看提示（扣 20%）'}</button><span class="small muted" id="worth"></span></div>
     <p class="small" id="hintText2" ${r.hint2 ? '' : 'hidden'}><b>提示：</b>${esc(ch.hint)}</p>`;
   worthLine();
   $('#hint2').onclick = () => { if (!r.hint2){ r.hint2 = true; save(); } $('#hintText2').hidden = false; $('#hint2').textContent = '提示'; worthLine(); };
-  TASKS[x.type](ch, $('#task'), () => complete(x, r, i), () => { r.wrong++; save(); worthLine(); });
+  TASKS[x.type](ch, $('#task'), () => complete(x, r, i), () => { r.cw = (r.cw || 0) + 1; save(); worthLine(); });
 }
 
-function complete(x, r, i, full){
-  r.done = true; r.score = full ? FULL : stationScore(r); r.at = Date.now(); save();
+function complete(x, r, i){
+  r.done = true; r.score = x.type === 'chk' ? basePts(x) : stationScore(x, r); r.at = Date.now(); save();
   const col = colorOf(i);
   $('#body').innerHTML = `<div class="result"><span class="stamp big" style="color:${col}">${esc(x.name.slice(0, 5))}<span class="pts">+${r.score}</span></span>
-    <h3>蓋印成功！</h3><p class="muted">${doneCount() === ST().length ? '全部站都完成了，回課室交成績吧！' : '還有 ' + (ST().length - doneCount()) + ' 個站，下一站換另一位隊員操作。'}</p>
+    <h3>蓋印成功！</h3><p class="muted">${doneCount() + failedCount() === ST().length ? '全部題目都做完了，回課室交成績吧！' : '下一題換另一位隊員操作。留意時間，揀定下一題！'}</p>
     <button class="btn primary" id="back2">返回護照</button></div>`;
   $('#back2').onclick = () => { view = 'book'; render(); };
   const bar = document.querySelector('.bar'); if (bar){ const tmp = document.createElement('div'); tmp.innerHTML = topBar(); bar.replaceWith(tmp.firstElementChild); }
@@ -616,7 +653,7 @@ function renderDone(){
   clearInterval(tick);
   app.innerHTML = `<div class="wrap"><div class="sheet" style="margin-top:0">
     <div class="eyebrow">尋寶完成</div><h2>第 ${st.group} 組${st.team ? ' · ' + esc(st.team) : ''}</h2>
-    <div class="mini">${ST().map((x, i) => { const d = st.s[x.id] && st.s[x.id].done; return `<div class="${d ? '' : 'no'}" style="color:${colorOf(i)}">${d ? '+' + st.s[x.id].score : ''}</div>`; }).join('')}</div>
+    <div class="mini">${ST().map((x, i) => { const r = st.s[x.id] || {}; return `<div class="${r.done ? '' : 'no'}" style="color:${r.failed ? '#8a969c' : colorOf(i)}" title="${esc(x.name)}">${r.done ? '+' + r.score : r.failed ? '✕' : ''}</div>`; }).join('')}</div>
     <div class="sumgrid"><div>印章<b>${doneCount()}/${ST().length}</b></div><div>總分<b>${total()}</b></div><div>用時<b>${mins} 分</b></div></div>
     <p style="margin:18px 0 0;text-align:center"><b>把這個核對碼給老師</b></p>
     <div class="passcode">${code}</div>
@@ -657,10 +694,12 @@ function changed(){
 function renderWarn(){
   const samples = TCFG.s.filter(x => x.sample).length, probs = problems();
   const el = $('#warn'); if (!el) return;
-  el.hidden = !(samples || probs.length);
+  const checks = TCFG.s.map((x, i) => x.check ? `第 ${i + 1} 站「${x.name}」` : '').filter(Boolean);
+  el.hidden = !(samples || probs.length || checks.length);
   el.innerHTML = (samples ? `<b>還有 ${samples} 個站是範例題目，答案未必正確。</b>請按學校實際情況修改，改過的站會自動去掉「範例」標籤。` : '')
+    + (checks.length ? `<b>活動前請到場核對答案：</b>${checks.map(esc).join('、')}（改過答案後提醒會自動消失）。` : '')
     + (probs.length ? `<ul>${probs.map(p => `<li>${esc(p)}</li>`).join('')}</ul>` : '');
-  document.querySelectorAll('.ed-st').forEach(card => { const x = TCFG.s[+card.dataset.k]; const tg = card.querySelector('.tag'); if (tg) tg.hidden = !x.sample; });
+  document.querySelectorAll('.ed-st').forEach(card => { const x = TCFG.s[+card.dataset.k]; const tg = card.querySelector('.tag'); if (tg) tg.hidden = !x.sample; const tc = card.querySelector('.tag.chk'); if (tc) tc.hidden = !x.check; });
 }
 function showQR(){
   qrShown = true;
@@ -680,7 +719,7 @@ function renderTeacher(){
 
     <section class="card board${bigMode ? ' bigmode' : ''}">
       <div class="row between"><h3>計分板</h3><button class="btn sm" id="big">${bigMode ? '一般大小' : '投影大字'}</button></div>
-      <div class="row" style="margin-top:10px;max-width:540px"><input id="pc" class="code" placeholder="XXXX-XXXX" style="flex:1;min-width:180px" autocomplete="off" autocapitalize="characters"><button class="btn primary" id="add">加入</button></div>
+      <div class="row" style="margin-top:10px;max-width:540px"><input id="pc" class="code" placeholder="XXXXX-XXXXX" style="flex:1;min-width:180px" autocomplete="off" autocapitalize="characters"><button class="btn primary" id="add">加入</button></div>
       <p class="msg" id="pm"></p>
       ${ranked.length ? `<div class="tbl"><table><tr><th>名次</th><th>組別</th><th>印章</th><th>分數</th><th>用時</th><th>核對碼</th><th></th></tr>
         ${ranked.map((b, i) => `<tr><td class="num">${i+1}</td><td class="num">第 ${b.group} 組${TCFG.teams[b.group - 1] ? `<br><span class="small muted" style="font-family:var(--f-body);white-space:normal">${TCFG.teams[b.group - 1].map(id => esc(pShort(id))).join('、')}</span>` : ''}</td><td class="num">${popcount(b.mask)}/${n}</td><td class="num"><b>${b.score}</b></td><td class="num">${b.mins} 分</td><td class="num">${b.code}</td><td><button class="btn sm" data-del="${b.group}">刪除</button></td></tr>`).join('')}
@@ -691,14 +730,14 @@ function renderTeacher(){
 
     <section class="card">
       <h3>題目設定</h3>
-      <p class="small muted" style="margin:4px 0 0">每個站揀一種類型：「找密碼」答對就蓋印章；「找密碼 → 解鎖挑戰」答對後要再完成一個電腦挑戰；「大使任務」由大使給完成碼。答案可以寫多個，用 / 分隔，例如「圓形/圓」。比對時不分大小寫和空格；答案是數字時，學生寫「八」或「8 盆」也算對。</p>
+      <p class="small muted" style="margin:4px 0 0">各組可以自由揀題目做。每題揀難度：★ 10 分、★★ 20 分、★★★ 30 分。每題最多答 3 次（第 1 次全數、第 2 次 60%、第 3 次 30%，三次錯 0 分），看提示扣 20%。答案可以寫多個，用「、」分隔，例如「圓形、圓」。比對時不分大小寫、空格和標點；答案是數字時，學生寫「八」或「8 盆」也算對。</p>
       <div class="setrow">
         <label>尋寶時間（分鐘）<input id="setM" type="number" min="5" max="90" value="${TCFG.m}"></label>
         <label>組數<input id="setG" type="number" min="1" max="15" value="${TCFG.teams.length || TCFG.g}" ${TCFG.teams.length ? 'disabled title="已分組，組數跟分組名單"' : ''}></label>
       </div>
       <div class="warnbox" id="warn" hidden></div>
       <div class="ed-list" id="edList"></div>
-      <div class="row" style="margin-top:14px"><button class="btn primary" id="addSt" ${n >= MAX_STATIONS ? 'disabled' : ''}>＋ 新增站點</button><span class="small muted">最多 ${MAX_STATIONS} 個站。建議 30 分鐘內 6 至 8 個站。</span><button class="btn sm" id="resetCfg" style="margin-left:auto">還原範例題目</button></div>
+      <div class="row" style="margin-top:14px"><button class="btn primary" id="addSt" ${n >= MAX_STATIONS ? 'disabled' : ''}>＋ 新增站點</button><span class="small muted">最多 ${MAX_STATIONS} 題。題目共 ${TCFG.s.reduce((a, x) => a + LV_PTS[(x.lv || 1) - 1], 0)} 分（★ ${TCFG.s.filter(x => x.lv === 1).length} 題、★★ ${TCFG.s.filter(x => x.lv === 2).length} 題、★★★ ${TCFG.s.filter(x => x.lv === 3).length} 題）。</span><button class="btn sm" id="resetCfg" style="margin-left:auto">還原 15 題題庫</button></div>
     </section>
 
     <section class="card">
@@ -713,7 +752,7 @@ function renderTeacher(){
       <div class="tbl"><table>
         <tr><th>課前</th><td>在「分組」標示缺席同學並自動分組；在「題目設定」寫好每站的線索和答案，用「答案表」印給大使。第一堂作品要先匯入展覽館的電腦。最後產生開場 QR 碼。</td></tr>
         <tr><th>0–5 分</th><td>投影「分組名單」，學生按組坐好，每組揀一部 iPad 做護照。投影開場 QR 碼，學生掃描並揀組別，畫面會顯示組員名單。說明規則和安全。</td></tr>
-        <tr><th>5–35 分</th><td>出發尋寶。各組由不同的站開始，避免擠在同一處。</td></tr>
+        <tr><th>5–35 分</th><td>出發尋寶。15 題自由揀做，30 分鐘內大概做到 8 至 10 題，各組要自己決定先做哪些、要不要挑戰 ★★★。提醒各組不要全部擠在地下。</td></tr>
         <tr><th>35–40 分</th><td>回課室，各組按「完成尋寶」，老師輸入核對碼，投影計分板。</td></tr>
         <tr><th>40–45 分</th><td>頒獎：尋寶冠軍隊、人氣遊戲獎（第一堂作品投票）、最佳遊戲設計、挑戰達人獎、最佳 3D 作品、最投入學員。</td></tr>
       </table></div>
@@ -723,7 +762,7 @@ function renderTeacher(){
   renderEditor(); renderWarn(); renderTeams();
   const add = () => {
     const r = readCode($('#pc').value);
-    if (!r || r.group < 1 || r.group > 15){ $('#pm').className = 'msg bad'; $('#pm').textContent = '核對碼不正確，請再看清楚（共 8 個字）。'; return; }
+    if (!r || r.group < 1 || r.group > 15){ $('#pm').className = 'msg bad'; $('#pm').textContent = '核對碼不正確，請再看清楚（共 10 個字）。'; return; }
     board = board.filter(b => b.group !== r.group); board.push(r); S.set('hunt-board', board);
     renderTeacher(); $('#pm').className = 'msg ok'; $('#pm').textContent = `已加入第 ${r.group} 組：${r.score} 分，用時 ${r.mins} 分鐘。`;
     $('#pc').focus();
@@ -734,8 +773,8 @@ function renderTeacher(){
   app.querySelectorAll('[data-del]').forEach(b => b.onclick = () => twoStep(b, () => { board = board.filter(x => x.group !== +b.dataset.del); S.set('hunt-board', board); renderTeacher(); }));
   $('#setM').oninput = e => { TCFG.m = Math.max(5, Math.min(90, +e.target.value || 30)); changed(); };
   $('#setG').oninput = e => { TCFG.g = Math.max(1, Math.min(15, +e.target.value || 10)); changed(); };
-  $('#addSt').onclick = () => { if (TCFG.s.length >= MAX_STATIONS) return; TCFG.s.push({ id: rid(), type:'find', name:'新站點', place:'', q:'', a:'', hint:'', task:'', sample:false }); applyTeacherCfg(); renderTeacher(); };
-  $('#resetCfg').onclick = e => twoStep(e.currentTarget, () => { TCFG = sampleConfig(); applyTeacherCfg(); renderTeacher(); toast('已還原範例題目'); });
+  $('#addSt').onclick = () => { if (TCFG.s.length >= MAX_STATIONS) return; TCFG.s.push({ id: rid(), type:'find', lv:1, name:'新站點', place:'', q:'', a:'', hint:'', task:'', sample:false }); applyTeacherCfg(); renderTeacher(); };
+  $('#resetCfg').onclick = e => twoStep(e.currentTarget, () => { const keep = { teams: TCFG.teams, absent: TCFG.absent }; TCFG = Object.assign(bankConfig(), keep); applyTeacherCfg(); renderTeacher(); toast('已還原 15 題題庫'); });
   $('#mkqr').onclick = () => { applyTeacherCfg(); showQR(); };
   $('#cpLink').onclick = () => { const u = studentURL(); try { navigator.clipboard.writeText(u).then(() => toast('已複製學生連結'), () => toast('複製失敗，請用 QR 碼')); } catch(e){ toast('複製失敗，請用 QR 碼'); } };
   if (qrShown) showQR();
@@ -800,18 +839,19 @@ function renderTeamsView(){
 function renderEditor(){
   const kindOpts = sel => Object.entries(KINDS).map(([k, v]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${v.label}</option>`).join('');
   $('#edList').innerHTML = TCFG.s.map((x, k) => `<div class="ed-st" data-k="${k}" style="--c:${colorOf(k)}">
-    <div class="row between"><div class="row"><b>第 ${k+1} 站</b><span class="tag" ${x.sample ? '' : 'hidden'}>範例，請修改</span></div>
+    <div class="row between"><div class="row"><b>第 ${k+1} 站</b><span class="tag" ${x.sample ? '' : 'hidden'}>範例，請修改</span><span class="tag chk" ${x.check ? '' : 'hidden'}>請到場核對答案</span></div>
       <div class="row"><button class="btn sm" data-act="up" ${k === 0 ? 'disabled' : ''} aria-label="上移">↑</button><button class="btn sm" data-act="down" ${k === TCFG.s.length - 1 ? 'disabled' : ''} aria-label="下移">↓</button><button class="btn sm" data-act="del">刪除</button></div></div>
     <div class="ed-grid">
       <label>站名<input data-f="name" maxlength="12" value="${esc(x.name)}"></label>
       <label>地點<input data-f="place" maxlength="16" value="${esc(x.place)}" placeholder="例如 一樓走廊"></label>
-      <label class="full">類型<select data-f="type">${kindOpts(x.type)}</select></label>
+      <label>類型<select data-f="type">${kindOpts(x.type)}</select></label>
+      <label>難度<select data-f="lv">${[1, 2, 3].map(v => `<option value="${v}"${(x.lv || 1) === v ? ' selected' : ''}>${stars(v)} ${LV_PTS[v - 1]} 分</option>`).join('')}</select></label>
       ${x.type === 'chk'
         ? `<label class="full">任務說明（學生會看到）<textarea data-f="task" maxlength="160">${esc(x.task)}</textarea></label>
            <label>完成碼（只交給大使）<input data-f="a" maxlength="20" value="${esc(x.a)}" placeholder="例如 VOTE"></label>`
         : `<label class="full">線索題目（學生要到這個地點找答案）<textarea data-f="q" maxlength="120" placeholder="例如：電腦室牆上的守則，第 3 句第 5 個字是甚麼？">${esc(x.q)}</textarea></label>
-           <label>答案<input data-f="a" maxlength="40" value="${esc(x.a)}" placeholder="多個答案用 / 分隔"></label>
-           <label>提示（選填，看了扣 5 分）<input data-f="hint" maxlength="60" value="${esc(x.hint)}"></label>`}
+           <label>答案<input data-f="a" maxlength="60" value="${esc(x.a)}" placeholder="多個答案用「、」分隔"></label>
+           <label>提示（選填，看了扣 20%）<input data-f="hint" maxlength="60" value="${esc(x.hint)}"></label>`}
     </div>
     ${CH[x.type] ? `<p class="small muted" style="margin:8px 0 0">答對後解鎖「${CH[x.type].title}」：${esc(CH[x.type].intro)}</p>` : ''}
   </div>`).join('');
@@ -820,7 +860,8 @@ function renderEditor(){
     card.querySelectorAll('[data-f]').forEach(inp => {
       const f = inp.dataset.f;
       if (f === 'type') inp.onchange = () => { x.type = inp.value; x.sample = false; applyTeacherCfg(); renderEditor(); renderWarn(); };
-      else inp.oninput = () => { x[f] = inp.value; if (f !== 'name') x.sample = false; changed(); };
+      else if (f === 'lv') inp.onchange = () => { x.lv = +inp.value; applyTeacherCfg(); renderTeacher(); };
+      else inp.oninput = () => { x[f] = inp.value; if (f !== 'name'){ x.sample = false; if (f === 'a' || f === 'q') x.check = false; } changed(); };
     });
     card.querySelector('[data-act=up]').onclick = () => { if (k > 0){ [TCFG.s[k-1], TCFG.s[k]] = [TCFG.s[k], TCFG.s[k-1]]; applyTeacherCfg(); renderEditor(); renderWarn(); } };
     card.querySelector('[data-act=down]').onclick = () => { if (k < TCFG.s.length - 1){ [TCFG.s[k+1], TCFG.s[k]] = [TCFG.s[k], TCFG.s[k+1]]; applyTeacherCfg(); renderEditor(); renderWarn(); } };
@@ -830,10 +871,10 @@ function renderEditor(){
 
 function renderAnswers(){
   app.innerHTML = `<div class="wrap"><div class="row between" style="margin-bottom:16px"><div><div class="eyebrow">老師及大使用 · 不要給學生看</div><h2>答案表</h2></div><a class="btn" href="#teacher">返回控制台</a></div>
-    <div class="card"><div class="tbl"><table><tr><th>站</th><th>站名／地點</th><th>類型</th><th>線索或任務</th><th>答案／完成碼</th><th>大使要做</th></tr>
-      ${TCFG.s.map((x, i) => `<tr><td class="num">${i+1}</td><td><b>${esc(x.name)}</b><br><span class="small muted">${esc(x.place)}</span></td><td class="small">${KINDS[x.type].short}${CH[x.type] ? '<br>' + CH[x.type].title : ''}</td>
-        <td class="small">${esc(x.type === 'chk' ? x.task : x.q)}${x.hint ? `<br><span class="muted">提示：${esc(x.hint)}</span>` : ''}</td>
-        <td class="num"><b>${esc(x.a)}</b>${x.sample ? '<br><span class="small muted">（範例）</span>' : ''}</td>
+    <div class="card"><div class="tbl"><table><tr><th>站</th><th>站名／地點</th><th>難度</th><th>線索或任務</th><th>答案／完成碼</th><th>大使要做</th></tr>
+      ${TCFG.s.map((x, i) => `<tr><td class="num">${i+1}</td><td><b>${esc(x.name)}</b><br><span class="small muted">${esc(x.place)}</span></td><td class="small"><span class="lvstar">${stars(x.lv)}</span><br>${LV_PTS[(x.lv || 1) - 1]} 分${x.type === 'find' ? '' : '<br>' + KINDS[x.type].short}</td>
+        <td class="small" style="white-space:pre-line">${esc(x.type === 'chk' ? x.task : x.q)}${x.hint ? `<br><span class="muted">提示：${esc(x.hint)}</span>` : ''}</td>
+        <td class="num" style="white-space:normal"><b>${splitAns(x.a).map(esc).join('<br>')}</b>${x.sample ? '<br><span class="small muted">（範例）</span>' : ''}${x.check ? '<br><span class="small" style="color:var(--bad)">（請到場核對）</span>' : ''}</td>
         <td class="small">${x.type === 'chk' ? '看着學生完成任務，完成後才說出完成碼' : '維持秩序、提醒輪流操作；不要告訴學生答案'}</td></tr>`).join('')}
     </table></div></div>
     <p class="small muted">可以截圖或列印這頁給大使。</p></div>`;
