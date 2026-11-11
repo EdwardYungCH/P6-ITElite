@@ -211,6 +211,36 @@ details.card summary{cursor:pointer;font-weight:900}
 .foot{margin-top:28px;font-size:14px}
 .foot a{color:var(--sky)}
 
+/* Drawing helpers */
+.helpers{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
+.hbtn[aria-pressed="true"]{background:var(--sun)}
+.helperbox{border:2px solid var(--ink);border-radius:8px;padding:12px 14px;background:var(--cream);margin-bottom:10px}
+.srctag{margin:0 0 12px;font-size:13px;color:var(--muted)}
+.libgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;margin-top:10px;max-height:300px;overflow:auto;padding:2px}
+.libgrid button{font:inherit;font-size:12px;border:2px solid var(--line);border-radius:8px;background:var(--card);padding:6px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--ink);min-width:0}
+.libgrid button img{width:44px;height:44px;image-rendering:pixelated}
+.libgrid button:hover{border-color:var(--ink)}
+.build{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:640px){.build{grid-template-columns:minmax(0,1fr)}}
+#bPrev,#rPrev{width:120px;height:120px;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:conic-gradient(#e9edf5 25%,#fff 0 50%,#e9edf5 0 75%,#fff 0) 0 0/20px 20px}
+.bopt{display:grid;gap:4px}
+.bopt .seg{margin-top:0}
+.bopt .seg button{font-size:13px;padding:3px 10px}
+.bopt .lab{font-size:13px;font-weight:700}
+.mini-sw{display:flex;flex-wrap:wrap;gap:4px}
+.mini-sw button{width:24px;height:24px;border:2px solid var(--ink);border-radius:4px;cursor:pointer;padding:0}
+.mini-sw button[aria-pressed="true"]{outline:3px solid var(--tomato);outline-offset:1px}
+.toolhint{margin:8px 0 0;font-size:13px;color:var(--muted);min-height:2.6em}
+#bMirror[aria-pressed="true"]{background:var(--sun)}
+.steps3{display:flex;gap:10px;align-items:center;margin-top:14px;font-size:13px}
+.steps3 canvas{width:72px;height:72px;image-rendering:pixelated;border:2px solid var(--ink);border-radius:4px;background:#fff;flex:none}
+.steps3 ol{margin:2px 0;padding-left:18px}
+.steps3 li.on{font-weight:900;color:var(--tomato)}
+.orig{display:inline-block;font-size:12px;font-weight:700;border-radius:4px;padding:1px 7px;margin-left:4px;border:1px solid var(--ink)}
+.orig.h{background:#c9f0e3}.orig.m{background:#fff1c2}.orig.l{background:#f6d6d2}
+.tsrc{grid-column:2/-1;font-size:12px;color:var(--muted);line-height:1.5}
+.tsrc b{color:var(--ink)}
+
 /* Login picker */
 .dialog.pk{width:min(720px,100%);--pk-bad:var(--tomato)}
 .pk-eye{font-size:12px;letter-spacing:.14em;color:var(--muted);font-weight:700}
@@ -290,8 +320,16 @@ details.card summary{cursor:pointer;font-weight:900}
       </div>
 
       <div class="pane" id="p-draw" hidden>
-        <div class="pane-head"><h2>畫出你的三個角色</h2><p>每個角色是 12 × 12 格的像素畫。揀顏色，再點或拖過格子就可以填色。</p></div>
+        <div class="pane-head"><h2>畫出你的角色</h2><p>不會畫也不用怕：可以由角色庫揀、用組合器砌，或者按隨機產生，再自己改一改。改得越多，越有你的風格。</p></div>
         <div class="slots" id="slots"></div>
+        <div class="helpers">
+          <span class="lbl" style="margin:0">幫手</span>
+          <button type="button" class="btn sm hbtn" data-h="lib" aria-pressed="false">角色庫</button>
+          <button type="button" class="btn sm hbtn" data-h="build" aria-pressed="false">角色組合器</button>
+          <button type="button" class="btn sm hbtn" data-h="rand" aria-pressed="false">隨機產生</button>
+        </div>
+        <div class="helperbox" id="helperBox" hidden></div>
+        <p class="srctag" id="srcTag"></p>
         <div class="frames row"><span class="lbl" style="margin:0">畫第幾格</span><div class="seg" id="frameSeg"></div><button class="btn sm" id="bCopyF">把第 1 格複製到第 2 格</button></div>
         <div class="editor">
           <canvas id="ed" width="288" height="288" aria-label="像素畫板"></canvas>
@@ -302,14 +340,20 @@ details.card summary{cursor:pointer;font-weight:900}
               <button class="btn sm tool" data-tool="pen" aria-pressed="true">畫筆</button>
               <button class="btn sm tool" data-tool="erase" aria-pressed="false">橡皮</button>
               <button class="btn sm tool" data-tool="fill" aria-pressed="false">倒色桶</button>
+              <button class="btn sm tool" data-tool="swap" aria-pressed="false">換色</button>
+              <button class="btn sm tool" data-tool="line" aria-pressed="false">直線</button>
+              <button class="btn sm tool" data-tool="rect" aria-pressed="false">方形</button>
+              <button class="btn sm tool" data-tool="ellipse" aria-pressed="false">圓形</button>
             </div>
+            <p class="toolhint" id="toolHint"></p>
             <div class="toolrow">
+              <button class="btn sm" id="bMirror" aria-pressed="false">鏡像：關</button>
               <button class="btn sm" id="bUndo">復原一步</button>
               <button class="btn sm" id="bFlip">左右翻轉</button>
               <button class="btn sm" id="bClear">清空</button>
               <button class="btn sm" id="bDefault">用回示範圖</button>
             </div>
-            <p class="tipline">畫完可以馬上在右邊的遊戲機試玩。格仔畫得越清楚，角色在遊戲中越易認。</p>
+            <div class="steps3"><canvas id="demoCv" width="72" height="72" aria-hidden="true"></canvas><div><b>自己畫的三步</b><ol id="steps3"><li>先畫外框</li><li>再填顏色</li><li>最後加眼睛和細節</li></ol><span class="muted">開「鏡像」只畫左邊，右邊自動對稱。</span></div></div>
             <div class="animwrap"><canvas id="animPrev" width="72" height="72"></canvas><span><b class="stars">★ 進階挑戰：兩格動畫</b><br>再畫「第 2 格」，例如腳換位置或翅膀向下，角色在遊戲中就會兩格輪流顯示，好像在動。畫第 2 格時，第 1 格會淡淡地顯示作參考。</span></div>
           </div>
         </div>
@@ -415,7 +459,7 @@ details.card summary{cursor:pointer;font-weight:900}
         </select>
       </div>
     </div>
-    <p class="muted small" style="margin:6px 0 0">三項各 1–5 分：創意（遊戲概念和名稱）、美術（角色設計）、玩法（規則平衡、好不好玩）。按「試玩」親自玩一次。</p>
+    <p class="muted small" style="margin:6px 0 0">三項各 1–5 分：創意（遊戲概念和名稱）、美術（角色設計，可參考「原創」標籤和下面的角色來源）、玩法（規則平衡、好不好玩）。按「試玩」親自玩一次。</p>
     <div id="tlist"></div>
   </section>
   <div class="t-grid">
@@ -538,6 +582,12 @@ const SP = {
   bullet:parseSprite(['............','............','.....66.....','....6666....','....6226....','....6226....','....6666....','....5555....','.....55.....','.....44.....','............','............']),
   car:   parseSprite(['............','............','...44444....','..4ee4ee4...','..4ee4ee44..','444444444444','444444444446','444444444444','.111....111.','.131....131.','.111....111.','............']),
   chick: parseSprite(['....44......','...2222.....','..222212....','..2222255...','..22222.....','.2222222....','222222222...','222222222...','.2222222....','..22222.....','...5..5.....','..55.55.....']),
+  cat:   parseSprite(['.55......55.','.555....555.','.5555555555.','.5555555555.','.5515555155.','.5555555555.','.5555bb5555.','.5555115555.','..55555555..','...555555...','............','............']),
+  fish:  parseSprite(['............','............','......888...','....888888..','8..88888818.','88888888888.','88888888888.','8..88888888.','....888888..','......888...','............','............']),
+  ghost: parseSprite(['............','....2222....','..22222222..','.2222222222.','.2212222122.','.2212222122.','.2222222222.','.2222112222.','.2222222222.','.2222222222.','.22.2222.22.','.2..2..2..2.']),
+  heart: parseSprite(['............','.444....444.','44444..44444','442444444444','444444444444','444444444444','.4444444444.','..44444444..','...444444...','....4444....','.....44.....','............']),
+  apple: parseSprite(['......c.....','.....c77....','..444c4444..','.4444444444.','.4424444444.','.4424444444.','.4444444444.','.4444444444.','.4444444444.','..44444444..','...44..44...','............']),
+  slime: parseSprite(['............','............','............','.....77.....','....7777....','...777777...','..77177177..','..77777777..','.7777117777.','.7777777777.','888888888888','............']),
   gift:  parseSprite(['...44..44...','....4444....','.bbbb66bbbb.','.bbbb66bbbb.','.1111661111.','..bbb66bbb..','..bbb66bbb..','..bbb66bbb..','..bbb66bbb..','..bbb66bbb..','..11111111..','............'])
 };
 /* 背景貼紙 */
@@ -587,6 +637,113 @@ const TYPES = [
 ];
 const sprKeys = t => [...t.spr, 'gift'];
 const typeSprites = t => sprKeys(t).map(k => SP[k].slice());
+
+/* ===== 角色庫（S1、S2… 是背景貼紙） ===== */
+const LIB = [['機械人','robot'],['小鳥','bird'],['恐龍','dino'],['地鼠','mole'],['小雞','chick'],['外星人','alien'],['貓','cat'],['鬼仔','ghost'],['史萊姆','slime'],['魚','fish'],['太空船','ship'],['汽車','car'],['星星','star'],['金幣','coin'],['愛心','heart'],['蘋果','apple'],['禮物','gift'],['炸彈','bomb'],['蘑菇','S6'],['仙人掌','cactus'],['水管','pipe'],['石頭','S7'],['樹','S1'],['花','S2'],['錘子','hammer'],['子彈','bullet']];
+const libSprite = k => { const key = LIB[k][1]; return /^S\d$/.test(key) ? STK[+key[1]] : SP[key]; };
+const libIndexOf = key => LIB.findIndex(x => x[1] === key);
+
+/* ===== 原創程度：記錄每個角色由哪裏開始，之後改了多少格 ===== */
+const OT = ['default', 'lib', 'build', 'rand', 'blank', 'trace'];
+const defaultOrigins = d => sprKeys(TYPES[d.type]).map((k, i) => ({ t: 'default', ref: libIndexOf(k), base: (d.sprites[i] || SP[k]).slice() }));
+function ensureOrigins(d){ if (!Array.isArray(d.origin) || d.origin.length !== 4 || d.origin.some(o => !o || !Array.isArray(o.base))) d.origin = defaultOrigins(Object.assign({}, d, { sprites: typeSprites(TYPES[d.type]) })); }
+function setOrigin(slot, t, ref){ D().origin[slot] = { t, ref, base: D().sprites[slot].slice() }; }
+function originInfo(d){
+  if (d.oinfo) return d.oinfo;
+  return d.origin.map((o, i) => {
+    const cur = d.sprites[i], base = o.base; let shape = 0, color = 0;
+    for (let k = 0; k < 144; k++){ const a = base[k], b = cur[k]; if ((a === 0) !== (b === 0)) shape++; else if (a && b && a !== b) color++; }
+    return { t: o.t, ref: o.ref, shape, color };
+  });
+}
+function originText(o){
+  const nm = LIB[o.ref] ? LIB[o.ref][0] : '';
+  const ch = (o.shape || o.color) ? `，改形 ${o.shape} 格、改色 ${o.color} 格` : '，未修改';
+  switch (o.t){
+    case 'blank': return `由零畫起（畫了 ${o.shape} 格）`;
+    case 'trace': return `描圖「${nm}」（畫了 ${o.shape} 格）`;
+    case 'build': return '角色組合器' + ch;
+    case 'rand': return '隨機產生' + ch;
+    case 'lib': return `角色庫「${nm}」` + ch;
+    default: return '示範圖' + ch;
+  }
+}
+function slotScore(o){
+  switch (o.t){
+    case 'blank': return o.shape >= 15 ? 3 : 2;
+    case 'trace': return 2;
+    case 'build': return o.shape >= 10 ? 2 : 1.5;
+    case 'rand': return o.shape >= 10 ? 2 : 1;
+    default: return o.shape >= 20 ? 2 : o.shape >= 8 ? 1.5 : o.color >= 10 ? .8 : 0;
+  }
+}
+function originality(d){
+  const info = originInfo(d), idx = d.pfreq > 0 ? [0, 1, 2, 3] : [0, 1, 2];
+  const avg = idx.reduce((a, i) => a + slotScore(info[i]), 0) / idx.length;
+  return { avg, label: avg >= 2.2 ? '高' : avg >= 1.2 ? '中' : '低', idx, info };
+}
+
+/* ===== 角色組合器 ===== */
+const BOPTS = { shape:['圓','方','高','闊','幽靈'], eyes:['圓點','大眼','生氣','瞌睡','獨眼','眼鏡'], mouth:['微笑','張口','牙齒','一字','吐舌'], top:['沒有','帽子','貓耳','角','天線','蝴蝶結'] };
+function buildSprite(o){
+  const g = new Array(144).fill(0), B = o.body, A = o.acc;
+  const set = (x, y, c) => { if (x >= 0 && y >= 0 && x < N && y < N) g[y*N + x] = c; };
+  const inShape = (x, y) => { const X = x + .5, Y = y + .5; switch (o.shape){
+    case 0: return (X-6)**2/25 + (Y-7.3)**2/21 <= 1;
+    case 1: return x >= 1 && x <= 10 && y >= 3 && y <= 11;
+    case 2: return (X-6)**2/12.5 + (Y-6.8)**2/27 <= 1;
+    case 3: return (X-6)**2/36 + (Y-8.2)**2/12 <= 1;
+    default: return y >= 3 && y <= 11 && x >= 1 && x <= 10 && (Y >= 7 ? !(y === 11 && (x === 3 || x === 4 || x === 7 || x === 8)) : (X-6)**2/25 + (Y-7)**2/16 <= 1);
+  } };
+  const EM = [[6, 9], [6, 9], [5, 8], [7, 9], [6, 8]][o.shape], ey = EM[0], my = EM[1];
+  let t = 12; for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (inShape(x, y)){ set(x, y, B); t = Math.min(t, y); }
+  if (o.top === 2){ set(2, t-1, B); set(3, t-1, B); set(2, t-2, B); set(9, t-1, B); set(8, t-1, B); set(9, t-2, B); }
+  const body = g.map(v => v === B);
+  for (let i = 0; i < 144; i++){ if (!body[i]) continue; const x = i % N, y = (i / N) | 0;
+    if (x === 0 || x === N-1 || y === 0 || y === N-1 || !body[i-1] || !body[i+1] || !body[i-N] || !body[i+N]) g[i] = 1; }
+  if (o.top === 1){ for (let x = 2; x <= 9; x++) set(x, t-1, A); for (let x = 4; x <= 7; x++){ set(x, t-2, A); set(x, t-3, A); } }
+  if (o.top === 3){ set(3, t-1, A); set(2, t-2, A); set(2, t-3, A); set(8, t-1, A); set(9, t-2, A); set(9, t-3, A); }
+  if (o.top === 4){ set(5, t-1, 1); set(6, t-1, 1); set(5, t-2, A); set(6, t-2, A); }
+  if (o.top === 5){ for (let x = 3; x <= 8; x++) set(x, t-1, A); set(3, t-2, A); set(8, t-2, A); set(5, t-1, 1); set(6, t-1, 1); }
+  const dark = [1, 10, 12, 15].includes(B), eye = dark ? 2 : 1;
+  switch (o.eyes){
+    case 0: set(4, ey, eye); set(7, ey, eye); break;
+    case 1: [3, 4, 7, 8].forEach(x => { set(x, ey-1, 2); set(x, ey, 2); }); set(4, ey, 1); set(7, ey, 1); break;
+    case 2: set(3, ey-2, 1); set(4, ey-1, 1); set(8, ey-2, 1); set(7, ey-1, 1); set(4, ey, eye); set(7, ey, eye); break;
+    case 3: [3, 4, 7, 8].forEach(x => set(x, ey, 1)); break;
+    case 4: [5, 6].forEach(x => { set(x, ey-1, 2); set(x, ey, 1); }); break;
+    default: [3, 4, 5, 6, 7, 8].forEach(x => set(x, ey-1, 1)); [3, 4, 7, 8].forEach(x => set(x, ey, 2)); set(4, ey, 1); set(7, ey, 1);
+  }
+  switch (o.mouth){
+    case 0: set(4, my-1, 1); set(7, my-1, 1); set(5, my, 1); set(6, my, 1); break;
+    case 1: set(5, my, 1); set(6, my, 1); set(5, my+1, 4); set(6, my+1, 4); break;
+    case 2: [4, 5, 6, 7].forEach(x => { set(x, my, 2); set(x, my+1, 1); }); break;
+    case 3: [4, 5, 6, 7].forEach(x => set(x, my, 1)); break;
+    default: [4, 5, 6, 7].forEach(x => set(x, my, 1)); set(5, my+1, 11); set(6, my+1, 11);
+  }
+  return g;
+}
+
+/* ===== 隨機產生：左右對稱的小怪獸 ===== */
+function randomSprite(){
+  const colors = [2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+  let best = null;
+  for (let tries = 0; tries < 30; tries++){
+    const g = new Array(144).fill(0), set = (x, y, c) => { g[y*N + x] = c; g[y*N + (N-1-x)] = c; };
+    const c1 = colors[Math.floor(Math.random()*colors.length)]; let c2 = c1; while (c2 === c1) c2 = colors[Math.floor(Math.random()*colors.length)];
+    for (let y = 1; y <= 10; y++) for (let x = 1; x <= 5; x++) if (Math.random() < .3 + .1*x) set(x, y, Math.random() < .25 ? c2 : c1);
+    for (let y = 3; y <= 8; y++) if (Math.random() < .8) set(5, y, c1);
+    for (let i = 0; i < 144; i++){ if (!g[i]) continue; const x = i % N; const nb = (x > 0 && g[i-1]) || (x < N-1 && g[i+1]) || g[i-N] || g[i+N]; if (!nb) g[i] = 0; }
+    const filled = g.filter(v => v).length; if (filled < 34) continue;
+    const out = g.slice();
+    for (let i = 0; i < 144; i++){ if (g[i]) continue; const x = i % N; if ((x > 0 && g[i-1]) || (x < N-1 && g[i+1]) || g[i-N] || g[i+N]) out[i] = 1; }
+    const eyeRow = [4, 5, 3, 6].find(y => g[y*N + 4] && g[y*N + 4] !== 1);
+    if (eyeRow != null){ out[eyeRow*N + 4] = 2; out[eyeRow*N + 7] = 2; if (out[(eyeRow+1)*N + 4] && out[(eyeRow+1)*N + 4] !== 1){ out[(eyeRow+1)*N + 4] = 1; out[(eyeRow+1)*N + 7] = 1; } }
+    best = out; if (filled >= 40 && eyeRow != null) break;
+  }
+  return best || buildSprite({ shape:4, eyes:1, mouth:0, top:0, body:2, acc:9 });
+}
+
 const BG_NAMES = ['晴天草地','星星夜空','海底世界','糖果王國','外太空','黃金沙漠'];
 const SOUND_NAMES = ['關閉','電子聲','可愛聲'];
 const RAMP_NAMES = ['不會變難','慢慢變難','很快變難'];
@@ -594,8 +751,10 @@ const GOALS = [0,30,50,100,200];
 const goalName = g => g ? g + ' 分過關' : '無限挑戰';
 function defaultDesign(type = 0){
   const t = TYPES[type];
-  return { type, cls:'', num:0, nick:'', title:t.title, desc:t.desc, p:t.p.slice(), lives:3, pts:1, ramp:1, goal:0, bg:t.bg, sound:1,
+  const d = { type, cls:'', num:0, nick:'', title:t.title, desc:t.desc, p:t.p.slice(), lives:3, pts:1, ramp:1, goal:0, bg:t.bg, sound:1,
     sprites:typeSprites(t), frames2:[null,null,null,null], pfx:0, pfreq:0, tempo:1, music:[0,0,0,0,0,0,0,0], stickers:[] };
+  d.origin = defaultOrigins(d);
+  return d;
 }
 const hasFrame = f => !!(f && f.some(v => v));
 /* 進階挑戰：完成了哪幾項 */
@@ -690,7 +849,7 @@ function checksum(arr){ let s = 0; for (const x of arr) s = (s * 31 + x) % 65521
 function rle(a){ const out = []; let i = 0; while (i < 144){ const c = a[i]; let n = 1; while (i + n < 144 && a[i+n] === c && n < 16) n++; out.push((c << 4) | (n - 1)); i += n; } return out; }
 function unrle(bytes){ const a = []; for (const b of bytes){ const c = b >> 4, n = (b & 15) + 1; for (let k = 0; k < n; k++) a.push(c); } return a.length === 144 ? a : null; }
 function encode(d){
-  const out = [3, d.type, ...d.p.slice(0, 5), d.lives, d.pts, d.ramp, Math.round(d.goal/10), d.bg, d.sound, d.num & 255, d.pfx, d.pfreq, d.tempo, ...d.music.slice(0, 8)];
+  const out = [4, d.type, ...d.p.slice(0, 5), d.lives, d.pts, d.ramp, Math.round(d.goal/10), d.bg, d.sound, d.num & 255, d.pfx, d.pfreq, d.tempo, ...d.music.slice(0, 8)];
   const stk = d.stickers.slice(0, 12); out.push(stk.length);
   for (const s of stk) out.push((s.s & 15) | (s.big ? 128 : 0), clamp(s.x, 0, 90), clamp(s.y, 0, 120));
   const enc = new TextEncoder();
@@ -699,16 +858,17 @@ function encode(d){
     const f1 = rle(d.sprites[k]); out.push(f1.length, ...f1);
     const f2 = hasFrame(d.frames2[k]) ? rle(d.frames2[k]) : []; out.push(f2.length, ...f2);
   }
+  originInfo(d).forEach(o => out.push(Math.max(0, OT.indexOf(o.t)), o.ref >= 0 && o.ref < 255 ? o.ref : 255, Math.min(o.shape, 144), Math.min(o.color, 144)));
   const c = checksum(out); out.push(c >> 8, c & 255);
-  return 'G3' + b64url(out);
+  return 'G4' + b64url(out);
 }
 function decode(code){
   try {
-    code = String(code).trim().replace(/^#/, ''); if (!code.startsWith('G3')) return null;
+    code = String(code).trim().replace(/^#/, ''); if (!/^G[34]/.test(code)) return null;
     const all = fromB64url(code.slice(2)); if (all.length < 40) return null;
     const body = all.slice(0, all.length - 2), c = checksum(body);
     if ((c >> 8) !== all[all.length-2] || (c & 255) !== all[all.length-1]) return null;
-    let i = 0; if (body[i++] !== 3) return null;
+    let i = 0; const ver = body[i++]; if (ver !== 3 && ver !== 4) return null;
     const d = {}; d.type = clamp(body[i++], 0, TYPES.length - 1);
     const t = TYPES[d.type];
     d.p = []; for (let k = 0; k < 5; k++){ const pr = t.params[k]; const v = body[i++]; d.p.push(pr ? clamp(v, pr.min, pr.max) : 0); }
@@ -725,6 +885,8 @@ function decode(code){
       const n1 = body[i++]; const a = unrle(body.slice(i, i + n1)); i += n1; if (!a) return null; d.sprites.push(a);
       const n2 = body[i++]; if (n2){ const b = unrle(body.slice(i, i + n2)); i += n2; if (!b) return null; d.frames2.push(b); } else d.frames2.push(null);
     }
+    if (ver === 4){ d.oinfo = []; for (let k = 0; k < 4; k++){ const t = OT[body[i++]] || 'default', ref = body[i++]; d.oinfo.push({ t, ref: ref === 255 ? -1 : ref, shape: body[i++], color: body[i++] }); } }
+    else d.oinfo = [0, 1, 2, 3].map(() => ({ t: 'default', ref: -1, shape: 0, color: 0 }));
     if (i !== body.length) return null;
     return d;
   } catch(e){ return null; }
@@ -1229,6 +1391,7 @@ function normDraft(dr){
   if (!Array.isArray(dr.d.frames2) || dr.d.frames2.length !== 4) dr.d.frames2 = [null,null,null,null];
   if (!Array.isArray(dr.d.music) || dr.d.music.length !== 8) dr.d.music = [0,0,0,0,0,0,0,0];
   if (!Array.isArray(dr.d.stickers)) dr.d.stickers = [];
+  ensureOrigins(dr.d);
   return dr;
 }
 let draft = normDraft(S.get('gd-draft', null));
@@ -1249,8 +1412,8 @@ function switchStudent(p){
   Object.assign(D(), { cls: p.cls, num: p.num, nick });
   flushDraft();
   if (!same){
-    undo.length = 0; curSlot = 0; curFrame = 0;
-    renderTypes(); buildRules(); syncRules(); renderPower(); syncLook(); renderSeq(); renderSlots(); renderFrames(); drawEditor(); renderHint(); updateStats();
+    undo.length = 0; curSlot = 0; curFrame = 0; helper = '';
+    renderHelper(); renderTypes(); buildRules(); syncRules(); renderPower(); syncLook(); renderSeq(); renderSlots(); renderFrames(); drawEditor(); renderHint(); updateStats();
     G1.reset(); activeGame = G1;
     const t1 = document.querySelector('.tab[data-tab=type]'); if (t1) t1.click();
   }
@@ -1293,40 +1456,47 @@ function selectType(i){
   const old = TYPES[d.type], nt = TYPES[i];
   const untouched = d.sprites.slice(0, 3).every((s, k) => sameArr(s, SP[old.spr[k]]));
   d.type = i; d.p = nt.p.slice();
-  if (untouched){ const keep = d.sprites[3]; d.sprites = typeSprites(nt); d.sprites[3] = keep; d.frames2 = [null, null, null, d.frames2[3]]; }
+  if (untouched){ const keep = d.sprites[3], keepO = d.origin[3]; d.sprites = typeSprites(nt); d.sprites[3] = keep; d.frames2 = [null, null, null, d.frames2[3]]; d.origin = defaultOrigins(d); d.origin[3] = keepO; }
   if (d.title === old.title || !d.title.trim()) d.title = nt.title;
   if (d.desc === old.desc || !d.desc.trim()) d.desc = nt.desc;
   if (d.bg === old.bg) d.bg = nt.bg;
   undo.length = 0; curSlot = 0; curFrame = 0;
-  renderTypes(); renderSlots(); renderFrames(); drawEditor(); buildRules(); syncRules(); syncLook(); renderHint(); saveDraft();
+  renderTypes(); renderSlots(); renderFrames(); drawEditor(); renderHelper(); buildRules(); syncRules(); syncLook(); renderHint(); saveDraft();
   G1.reset(); activeGame = G1;
   toast(untouched ? `已轉為「${nt.name}」，按右邊試玩看看` : `已轉為「${nt.name}」。你畫的角色保留了，想用示範圖可以按「用回示範圖」。`);
 }
 function renderHint(){ const t = TT(); $('#cabHint').innerHTML = `電腦：${esc(t.key)}，空白鍵開始。<br>iPad：${esc(t.touch)}。`; }
 
 // Step 2: pixel editor
-let curSlot = 0, curFrame = 0, curColor = 1, tool = 'pen', painting = false;
+let curSlot = 0, curFrame = 0, curColor = 1, tool = 'pen', painting = false, mirror = false, shapeStart = -1, shapePrev = null, showTrace = true, helper = '';
 const undo = [];
 const ed = $('#ed'), eg = ed.getContext('2d'), CELL = 24;
 const curArr = () => { const d = D(); if (curFrame === 0) return d.sprites[curSlot]; if (!d.frames2[curSlot]) d.frames2[curSlot] = new Array(144).fill(0); return d.frames2[curSlot]; };
 const setArr = a => { if (curFrame === 0) D().sprites[curSlot] = a; else D().frames2[curSlot] = a; };
+const mirrorIdx = i => (i - i % N) + (N - 1 - i % N);
+const traceGhost = () => { if (curFrame !== 0 || !showTrace) return null; const o = D().origin[curSlot]; return o && o.t === 'trace' && LIB[o.ref] ? libSprite(o.ref) : null; };
 function drawEditor(){
-  const sp = curArr(), ghost = curFrame === 1 ? D().sprites[curSlot] : null;
+  const sp = curArr(), ghost = curFrame === 1 ? D().sprites[curSlot] : traceGhost();
+  const prev = shapePrev ? new Set(shapePrev) : null;
   for (let i = 0; i < 144; i++){
     const x = i % N, y = (i / N) | 0;
     eg.fillStyle = sp[i] ? PAL[sp[i]] : ((x + y) % 2 ? '#eef1f7' : '#ffffff');
     eg.fillRect(x*CELL, y*CELL, CELL, CELL);
-    if (!sp[i] && ghost && ghost[i]){ eg.globalAlpha = .22; eg.fillStyle = PAL[ghost[i]]; eg.fillRect(x*CELL, y*CELL, CELL, CELL); eg.globalAlpha = 1; }
+    if (!sp[i] && ghost && ghost[i]){ eg.globalAlpha = curFrame === 1 ? .22 : .3; eg.fillStyle = PAL[ghost[i]]; eg.fillRect(x*CELL, y*CELL, CELL, CELL); eg.globalAlpha = 1; }
+    if (prev && prev.has(i)){ eg.globalAlpha = .75; eg.fillStyle = curColor ? PAL[curColor] : '#ffffff'; eg.fillRect(x*CELL + 2, y*CELL + 2, CELL - 4, CELL - 4); eg.globalAlpha = 1; }
   }
   eg.strokeStyle = 'rgba(24,32,55,.16)'; eg.lineWidth = 1; eg.beginPath();
   for (let k = 1; k < N; k++){ eg.moveTo(k*CELL + .5, 0); eg.lineTo(k*CELL + .5, 288); eg.moveTo(0, k*CELL + .5); eg.lineTo(288, k*CELL + .5); }
   eg.stroke();
-  eg.strokeStyle = 'rgba(232,71,58,.35)'; eg.beginPath(); eg.moveTo(144.5, 0); eg.lineTo(144.5, 288); eg.stroke();
+  eg.strokeStyle = mirror ? 'rgba(232,71,58,.9)' : 'rgba(232,71,58,.35)'; eg.lineWidth = mirror ? 3 : 1;
+  eg.beginPath(); eg.moveTo(144, 0); eg.lineTo(144, 288); eg.stroke(); eg.lineWidth = 1;
 }
 function renderSlots(){
   const sl = [...TT().slots, POWER_SLOT];
   $('#slots').innerHTML = sl.map((s, i) => `<button class="slot" data-i="${i}" aria-pressed="${i === curSlot}"><img alt="" src="${spriteURL(D().sprites[i], 4)}"><span><b>${s[0]}${hasFrame(D().frames2[i]) ? ' <span class="stars">★</span>' : ''}</b><small>${s[1]}</small></span></button>`).join('');
-  document.querySelectorAll('.slot').forEach(b => b.onclick = () => { curSlot = +b.dataset.i; renderSlots(); drawEditor(); });
+  document.querySelectorAll('.slot').forEach(b => b.onclick = () => { curSlot = +b.dataset.i; renderSlots(); drawEditor(); renderHelper(); });
+  const o = originInfo(D())[curSlot];
+  $('#srcTag').textContent = '這個角色：' + originText(o) + (o.t === 'blank' || o.t === 'trace' ? '' : (o.shape < 8 ? '。改多一點，會更有你的風格！' : '。'));
 }
 function renderFrames(){
   const el = $('#frameSeg');
@@ -1342,35 +1512,163 @@ setInterval(() => {
   const sp = animTick && hasFrame(f2) ? f2 : d.sprites[curSlot];
   animC.clearRect(0, 0, 72, 72); animC.imageSmoothingEnabled = false; animC.drawImage(spriteCanvas(sp), 0, 0, 72, 72);
 }, 260);
+
+/* 三步口訣示範：外框 → 填色 → 細節 */
+const demoC = $('#demoCv').getContext('2d');
+const DEMO = (() => {
+  const s = SP.slime, fill = [], outline = [], detail = [];
+  const filled = i => i >= 0 && i < 144 && s[i] !== 0;
+  for (let i = 0; i < 144; i++){
+    if (!s[i]) continue; const x = i % N;
+    const edge = !filled(i - N) || !filled(i + N) || x === 0 || !filled(i - 1) || x === N - 1 || !filled(i + 1);
+    if (edge) outline.push(i); else if (s[i] === 1) detail.push(i); else fill.push(i);
+  }
+  return { outline, fill, detail };
+})();
+let demoT = 0;
+setInterval(() => {
+  if ($('#p-draw').hidden) return;
+  demoT = (demoT + 1) % 70;
+  const nO = DEMO.outline.length, nF = DEMO.fill.length, nD = DEMO.detail.length;
+  const g = new Array(144).fill(0);
+  const a = Math.min(nO, Math.round(demoT / 20 * nO)), b = Math.min(nF, Math.max(0, Math.round((demoT - 20) / 20 * nF))), c = Math.min(nD, Math.max(0, Math.round((demoT - 40) / 10 * nD)));
+  DEMO.outline.slice(0, a).forEach(i => g[i] = 1); DEMO.fill.slice(0, b).forEach(i => g[i] = 7); DEMO.detail.slice(0, c).forEach(i => g[i] = 1);
+  demoC.fillStyle = '#ffffff'; demoC.fillRect(0, 0, 72, 72); demoC.imageSmoothingEnabled = false; demoC.drawImage(spriteCanvas(g), 0, 0, 72, 72);
+  const step = demoT < 20 ? 0 : demoT < 40 ? 1 : 2;
+  document.querySelectorAll('#steps3 li').forEach((li, k) => li.classList.toggle('on', k === step));
+}, 90);
+
 function renderPal(){
   $('#pal').innerHTML = PAL.map((c, i) => `<button class="sw${i ? '' : ' clear'}" data-i="${i}" aria-pressed="${i === curColor}" aria-label="${i ? '顏色 ' + i : '透明'}" style="${c ? 'background:' + c : ''}"></button>`).join('');
   document.querySelectorAll('.sw').forEach(b => b.onclick = () => { curColor = +b.dataset.i; if (tool === 'erase') setTool('pen'); renderPal(); });
 }
-function setTool(t){ tool = t; document.querySelectorAll('.tool').forEach(b => b.setAttribute('aria-pressed', b.dataset.tool === t)); }
+const TOOL_HINT = {
+  pen: '畫筆：點或拖過格子填色。', erase: '橡皮：點或拖過格子擦走顏色。', fill: '倒色桶：把一片相連的同色格子一次填滿。',
+  swap: '換色：先在上面揀新顏色，再點角色上想換的顏色，整個角色那種顏色會一次換晒。',
+  line: '直線：在畫板上按住拖動，放手就畫出直線。', rect: '方形：按住由一角拖到另一角，放手就畫出方框。', ellipse: '圓形：按住拖出一個範圍，放手就畫出圓圈。'
+};
+function setTool(t){ tool = t; document.querySelectorAll('.tool').forEach(b => b.setAttribute('aria-pressed', b.dataset.tool === t)); renderToolHint(); }
+function renderToolHint(){ $('#toolHint').textContent = TOOL_HINT[tool] + (mirror ? '（鏡像開：右邊會自動畫一樣的）' : ''); }
 document.querySelectorAll('.tool').forEach(b => b.onclick = () => setTool(b.dataset.tool));
-function pushUndo(){ undo.push({ s: curSlot, f: curFrame, a: curArr().slice() }); if (undo.length > 40) undo.shift(); }
+$('#bMirror').onclick = () => { mirror = !mirror; $('#bMirror').setAttribute('aria-pressed', mirror); $('#bMirror').textContent = mirror ? '鏡像：開' : '鏡像：關'; renderToolHint(); drawEditor(); };
+function pushUndo(){ undo.push({ s: curSlot, f: curFrame, a: curArr().slice(), o: JSON.parse(JSON.stringify(D().origin[curSlot])) }); if (undo.length > 40) undo.shift(); }
 function cellAt(e){ const r = ed.getBoundingClientRect(); const x = Math.floor((e.clientX - r.left) / r.width * N), y = Math.floor((e.clientY - r.top) / r.height * N); return (x < 0 || y < 0 || x >= N || y >= N) ? -1 : y * N + x; }
-function paint(i){ const sp = curArr(); const v = tool === 'erase' ? 0 : curColor; if (sp[i] !== v){ sp[i] = v; drawEditor(); } }
+function setCell(sp, i, v){ sp[i] = v; if (mirror) sp[mirrorIdx(i)] = v; }
+function paint(i){ const sp = curArr(); const v = tool === 'erase' ? 0 : curColor; if (sp[i] !== v || (mirror && sp[mirrorIdx(i)] !== v)){ setCell(sp, i, v); drawEditor(); } }
 function flood(i){
   const sp = curArr(), from = sp[i], to = curColor; if (from === to) return;
   const q = [i]; while (q.length){ const k = q.pop(); if (sp[k] !== from) continue; sp[k] = to; const x = k % N, y = (k / N) | 0;
     if (x > 0) q.push(k-1); if (x < N-1) q.push(k+1); if (y > 0) q.push(k-N); if (y < N-1) q.push(k+N); }
-  drawEditor();
+}
+function swapColor(i){
+  const sp = curArr(), from = sp[i], to = curColor;
+  if (!from){ toast('請點角色上有顏色的格子'); return false; }
+  if (from === to){ toast('先在上面揀一種新顏色'); return false; }
+  for (let k = 0; k < 144; k++) if (sp[k] === from) sp[k] = to;
+  const f2 = D().frames2[curSlot];
+  if (curFrame === 0 && hasFrame(f2)) for (let k = 0; k < 144; k++) if (f2[k] === from) f2[k] = to;
+  return true;
+}
+function shapeCells(a, b){
+  const x0 = a % N, y0 = (a / N) | 0, x1 = b % N, y1 = (b / N) | 0, out = [];
+  if (tool === 'line'){
+    let x = x0, y = y0; const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1; let err = dx + dy;
+    for (;;){ out.push(y*N + x); if (x === x1 && y === y1) break; const e2 = 2*err; if (e2 >= dy){ err += dy; x += sx; } if (e2 <= dx){ err += dx; y += sy; } }
+    return out;
+  }
+  const L = Math.min(x0, x1), R = Math.max(x0, x1), T = Math.min(y0, y1), B = Math.max(y0, y1);
+  if (tool === 'rect'){ for (let y = T; y <= B; y++) for (let x = L; x <= R; x++) if (x === L || x === R || y === T || y === B) out.push(y*N + x); return out; }
+  const cx = (L + R) / 2, cy = (T + B) / 2, rx = (R - L) / 2 + .5, ry = (B - T) / 2 + .5;
+  const inside = (x, y) => x >= L && x <= R && y >= T && y <= B && ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1;
+  for (let y = T; y <= B; y++) for (let x = L; x <= R; x++) if (inside(x, y) && (!inside(x-1, y) || !inside(x+1, y) || !inside(x, y-1) || !inside(x, y+1))) out.push(y*N + x);
+  return out;
 }
 function commitArt(){ renderSlots(); saveDraft(); }
+const SHAPES = ['line', 'rect', 'ellipse'];
 ed.addEventListener('pointerdown', e => {
   e.preventDefault(); const i = cellAt(e); if (i < 0) return;
   try { ed.setPointerCapture(e.pointerId); } catch(_){}
   pushUndo();
-  if (tool === 'fill'){ flood(i); commitArt(); return; }
+  if (tool === 'fill'){ flood(i); if (mirror && mirrorIdx(i) !== i) flood(mirrorIdx(i)); drawEditor(); commitArt(); return; }
+  if (tool === 'swap'){ if (swapColor(i)){ drawEditor(); commitArt(); } else undo.pop(); return; }
+  if (SHAPES.includes(tool)){ shapeStart = i; shapePrev = shapeCells(i, i); drawEditor(); return; }
   painting = true; paint(i);
 });
-ed.addEventListener('pointermove', e => { if (!painting) return; const i = cellAt(e); if (i >= 0) paint(i); });
-['pointerup','pointercancel'].forEach(t => ed.addEventListener(t, () => { if (painting){ painting = false; commitArt(); } }));
-$('#bUndo').onclick = () => { const u = undo.pop(); if (!u){ toast('沒有可以復原的步驟'); return; } curSlot = u.s; curFrame = u.f; setArr(u.a); renderFrames(); drawEditor(); commitArt(); };
+ed.addEventListener('pointermove', e => {
+  const i = cellAt(e); if (i < 0) return;
+  if (shapeStart >= 0){ shapePrev = shapeCells(shapeStart, i); if (mirror) shapePrev = shapePrev.concat(shapePrev.map(mirrorIdx)); drawEditor(); return; }
+  if (painting) paint(i);
+});
+['pointerup','pointercancel'].forEach(t => ed.addEventListener(t, () => {
+  if (shapeStart >= 0){ const sp = curArr(); (shapePrev || []).forEach(k => sp[k] = curColor); shapeStart = -1; shapePrev = null; drawEditor(); commitArt(); return; }
+  if (painting){ painting = false; commitArt(); }
+}));
+$('#bUndo').onclick = () => {
+  const u = undo.pop(); if (!u){ toast('沒有可以復原的步驟'); return; }
+  curSlot = u.s; curFrame = u.f; setArr(u.a); if (u.o) D().origin[u.s] = u.o;
+  renderFrames(); drawEditor(); commitArt(); renderHelper();
+};
 $('#bFlip').onclick = () => { pushUndo(); const sp = curArr(), n = []; for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) n.push(sp[y*N + (N-1-x)]); setArr(n); drawEditor(); commitArt(); };
-$('#bClear').onclick = () => { pushUndo(); setArr(new Array(144).fill(0)); drawEditor(); commitArt(); toast('已清空，按「復原一步」可以還原'); };
-$('#bDefault').onclick = () => { pushUndo(); setArr(curFrame === 0 ? SP[sprKeys(TT())[curSlot]].slice() : new Array(144).fill(0)); drawEditor(); commitArt(); };
+$('#bClear').onclick = () => {
+  pushUndo(); setArr(new Array(144).fill(0));
+  if (curFrame === 0) setOrigin(curSlot, 'blank', -1);
+  drawEditor(); commitArt(); toast('已清空，可以由零開始畫。按「復原一步」可以還原');
+};
+$('#bDefault').onclick = () => {
+  pushUndo();
+  if (curFrame === 0){ const key = sprKeys(TT())[curSlot]; setArr(SP[key].slice()); setOrigin(curSlot, 'default', libIndexOf(key)); }
+  else setArr(new Array(144).fill(0));
+  drawEditor(); commitArt();
+};
+
+/* ===== 幫手：角色庫、組合器、隨機產生 ===== */
+function applyToSlot(arr, t, ref, msg){
+  curFrame = 0; renderFrames(); pushUndo();
+  setArr(arr.slice()); setOrigin(curSlot, t, ref);
+  drawEditor(); commitArt(); renderHelper();
+  toast(msg || '已套用。按「復原一步」可以還原');
+}
+let libMode = 'use', bsel = { shape:0, eyes:1, mouth:0, top:0, body:5, acc:9 }, randArr = null;
+const slotName = () => [...TT().slots, POWER_SLOT][curSlot][0];
+document.querySelectorAll('.hbtn').forEach(b => b.onclick = () => { helper = helper === b.dataset.h ? '' : b.dataset.h; renderHelper(); });
+function renderHelper(){
+  document.querySelectorAll('.hbtn').forEach(b => b.setAttribute('aria-pressed', b.dataset.h === helper));
+  const box = $('#helperBox'); box.hidden = !helper;
+  if (helper === 'lib'){
+    const o = D().origin[curSlot], tracing = o.t === 'trace';
+    box.innerHTML = `<div class="row between"><div class="seg" id="libMode" style="margin-top:0"></div>${tracing ? `<button class="btn sm" id="bTrace">${showTrace ? '隱藏描圖參考' : '顯示描圖參考'}</button>` : ''}</div>
+      <p class="small muted" style="margin:8px 0 0">${libMode === 'use' ? `點一個角色，放進「${slotName()}」，再自己改顏色和形狀。` : `描圖：畫板會清空，角色會淡淡地顯示，你跟着自己畫。自己畫的格數越多，越原創。`}</p>
+      <div class="libgrid">${LIB.map((x, k) => `<button type="button" data-k="${k}"><img alt="" src="${spriteURL(libSprite(k), 4)}">${x[0]}</button>`).join('')}</div>`;
+    const m = $('#libMode');
+    m.innerHTML = [['use', '直接使用'], ['trace', '描圖']].map(([v, n]) => `<button type="button" data-v="${v}" aria-pressed="${libMode === v}">${n}</button>`).join('');
+    m.querySelectorAll('button').forEach(b => b.onclick = () => { libMode = b.dataset.v; renderHelper(); });
+    const bt = $('#bTrace'); if (bt) bt.onclick = () => { showTrace = !showTrace; drawEditor(); renderHelper(); };
+    box.querySelectorAll('.libgrid button').forEach(b => b.onclick = () => {
+      const k = +b.dataset.k;
+      if (libMode === 'use') applyToSlot(libSprite(k), 'lib', k, `已放入「${LIB[k][0]}」。試試用「換色」改成你喜歡的顏色！`);
+      else { showTrace = true; applyToSlot(new Array(144).fill(0), 'trace', k, `跟着淡色的「${LIB[k][0]}」畫，也可以畫得不一樣`); }
+    });
+  } else if (helper === 'build'){
+    const opt = (key, names) => `<div class="bopt"><span class="lab">${{ shape:'形狀', eyes:'眼睛', mouth:'嘴巴', top:'頭頂' }[key]}</span><div class="seg" data-b="${key}">${names.map((n, k) => `<button type="button" data-v="${k}" aria-pressed="${bsel[key] === k}">${n}</button>`).join('')}</div></div>`;
+    const sw = key => `<div class="bopt"><span class="lab">${key === 'body' ? '身體顏色' : '配件顏色'}</span><div class="mini-sw" data-c="${key}">${PAL.map((c, k) => k < 2 ? '' : `<button type="button" data-v="${k}" aria-pressed="${bsel[key] === k}" style="background:${c}" aria-label="顏色 ${k}"></button>`).join('')}</div></div>`;
+    box.innerHTML = `<div class="build"><div style="display:grid;gap:8px;justify-items:center"><canvas id="bPrev" width="120" height="120"></canvas><button class="btn sm primary" id="bApply">放進「${slotName()}」</button></div>
+      <div style="display:grid;gap:10px">${opt('shape', BOPTS.shape)}${opt('eyes', BOPTS.eyes)}${opt('mouth', BOPTS.mouth)}${opt('top', BOPTS.top)}${sw('body')}${sw('acc')}</div></div>`;
+    const draw = () => { const c = $('#bPrev').getContext('2d'); c.clearRect(0, 0, 120, 120); c.imageSmoothingEnabled = false; c.drawImage(spriteCanvas(buildSprite(bsel)), 0, 0, 120, 120); };
+    box.querySelectorAll('[data-b] button').forEach(b => b.onclick = () => { bsel[b.parentElement.dataset.b] = +b.dataset.v; b.parentElement.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); draw(); });
+    box.querySelectorAll('[data-c] button').forEach(b => b.onclick = () => { bsel[b.parentElement.dataset.c] = +b.dataset.v; b.parentElement.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); draw(); });
+    $('#bApply').onclick = () => applyToSlot(buildSprite(bsel), 'build', 255, '已放進畫板。可以再加幾格，令它更特別！');
+    draw();
+  } else if (helper === 'rand'){
+    if (!randArr) randArr = randomSprite();
+    box.innerHTML = `<div class="build"><canvas id="rPrev" width="120" height="120"></canvas><div style="display:grid;gap:10px;align-content:start">
+      <p class="small" style="margin:0">電腦會畫一個左右對稱的小怪獸。不喜歡就按「再隨機」，揀到喜歡的再放進畫板，然後自己改一改。</p>
+      <div class="row"><button class="btn sm" id="bReroll">再隨機</button><button class="btn sm primary" id="bRandApply">放進「${slotName()}」</button></div></div></div>`;
+    const draw = () => { const c = $('#rPrev').getContext('2d'); c.clearRect(0, 0, 120, 120); c.imageSmoothingEnabled = false; c.drawImage(spriteCanvas(randArr), 0, 0, 120, 120); };
+    $('#bReroll').onclick = () => { randArr = randomSprite(); draw(); };
+    $('#bRandApply').onclick = () => applyToSlot(randArr, 'rand', 255, '已放進畫板。試試加眼睛或改顏色！');
+    draw();
+  } else box.innerHTML = '';
+}
 
 // Step 3: rules
 function ruleDefs(){
@@ -1594,8 +1892,8 @@ const totalOf = id => { const s = T.scores[id] || {}; return (s.c || 0) + (s.a |
 const author = d => `${d.cls} · ${d.num} 號 · ${rosterName(d.cls, d.num) || '名單外'}${d.nick ? '（' + d.nick + '）' : ''}`;
 
 $('#bImp').onclick = () => {
-  const txt = $('#imp').value; const codes = txt.match(/G[1-3][A-Za-z0-9_-]{50,}/g) || [];
-  if (!codes.length){ $('#impMsg').textContent = '找不到作品碼。作品碼以 G3 開頭，請檢查是否完整貼上。'; return; }
+  const txt = $('#imp').value; const codes = txt.match(/G[1-4][A-Za-z0-9_-]{50,}/g) || [];
+  if (!codes.length){ $('#impMsg').textContent = '找不到作品碼。作品碼以 G4 開頭，請檢查是否完整貼上。'; return; }
   const r = { new:0, upd:0, same:0, bad:0 }; codes.forEach(c => r[addGame(c)]++);
   saveT(); renderTeacher();
   $('#impMsg').textContent = `新增 ${r.new} 個，更新 ${r.upd} 個${r.same ? `，重複 ${r.same} 個` : ''}${r.bad ? `，有 ${r.bad} 個作品碼不完整或是舊版（請該同學再交一次）` : ''}。`;
@@ -1641,10 +1939,11 @@ function renderList(){
     const { d, demo } = T.games[id]; const s = T.scores[id] || {};
     return `<article class="trow" data-id="${esc(id)}">
       <div class="thumbs">${d.sprites.map(sp => `<img alt="" src="${spriteURL(sp, 3)}">`).join('')}</div>
-      <div class="tinfo"><b>${esc(d.title || '未命名')}</b><span><span class="tag">${TYPES[d.type].name}</span> ${esc(author(d))}${demo ? '<span class="demo">示範</span>' : ''}</span>${starsOf(d) ? `<br><span class="stars small">${'★'.repeat(starsOf(d))} 進階挑戰 ${starsOf(d)} 項</span>` : ''}</div>
+      <div class="tinfo"><b>${esc(d.title || '未命名')}</b><span class="orig ${{ '高':'h', '中':'m', '低':'l' }[originality(d).label]}" title="按角色來源和改動格數估計，只供參考">原創：${originality(d).label}</span><span><span class="tag">${TYPES[d.type].name}</span> ${esc(author(d))}${demo ? '<span class="demo">示範</span>' : ''}</span>${starsOf(d) ? `<br><span class="stars small">${'★'.repeat(starsOf(d))} 進階挑戰 ${starsOf(d)} 項</span>` : ''}</div>
       <div class="tscore">${CR.map(([k, n]) => `<div class="crit">${n}<div class="dots">${[1,2,3,4,5].map(v => `<button data-k="${k}" data-v="${v}" class="${(s[k] || 0) >= v ? 'on' : ''}" aria-label="${n} ${v} 分">${v}</button>`).join('')}</div></div>`).join('')}</div>
       <div class="ttotal"><b>${totalOf(id)}</b><small>/ 15 · ${vc[id] || 0} 票</small></div>
       <div class="row"><button class="btn sm go" data-act="play">試玩</button><button class="btn sm" data-act="del">刪除</button></div>
+      <div class="tsrc">${(() => { const o = originality(d), names = [...TYPES[d.type].slots.map(x => x[0]), '道具']; return o.idx.map(i => `<b>${names[i]}</b>：${esc(originText(o.info[i]))}`).join('　'); })()}</div>
       <div class="tnote"><input data-act="note" placeholder="備註（例如：上台示範、表現投入）" value="${esc(s.note || '')}" aria-label="備註"></div>
     </article>`;
   }).join('');
@@ -1789,7 +2088,7 @@ function route(){
 }
 window.addEventListener('hashchange', route);
 
-renderTypes(); buildRules(); syncRules(); renderPower(); syncLook(); renderSeq(); renderPal(); renderSlots(); renderFrames(); drawEditor(); renderHint(); updateStats(); renderSubmit();
+renderTypes(); buildRules(); syncRules(); renderPower(); syncLook(); renderSeq(); renderPal(); renderSlots(); renderFrames(); drawEditor(); renderToolHint(); renderHelper(); renderHint(); updateStats(); renderSubmit();
 route();
 requestAnimationFrame(loop);
 if (document.fonts && document.fonts.load) document.fonts.load('20px "DotGothic16"').catch(() => {});
