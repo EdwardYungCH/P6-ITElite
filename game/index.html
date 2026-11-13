@@ -427,12 +427,72 @@ details.card summary{cursor:pointer;font-weight:900}
   <p class="foot"><a href="#gallery">同學作品展</a>　｜　<a href="#teacher">老師入口</a></p>
 </main>
 
+<!-- ============ 老師頁 ============ -->
 <main id="v-teacher" class="wrap" hidden>
-<div class="t-head"><h2>老師控制台</h2><div class="row"><a class="btn" href="#">學生頁</a><a class="btn" href="#gallery">展覽館</a><button class="btn" id="logout">登出</button></div></div>
-<div id="teacherLogin" class="card"><form id="loginForm"><label class="lbl" for="teacherPin">老師密碼</label><input id="teacherPin" type="password" autocomplete="current-password" required style="max-width:300px"><button class="btn primary" type="submit">登入</button></form><p id="loginMsg" role="status"></p></div>
-<div id="teacherContent" hidden><div class="card"><div class="row"><select id="teacherGroup"><option value="">全部組別</option><option>A</option><option>B</option></select><button class="btn" id="teacherRefresh">重新整理</button><button class="btn" id="exportData">下載備份</button><button class="btn" id="resetVotes">清除投票</button></div><p id="teacherMsg" role="status"></p><div id="cloudAwards"></div></div><details class="card" style="margin-top:16px"><summary>匯入舊作品／還原備份</summary><p>可批量貼上原有作品碼。名單內的學生會自動分組。</p><textarea id="importCodes" placeholder="貼上作品碼"></textarea><label>名單外學生組別 <select id="importGroup"><option>A</option><option>B</option></select></label><button class="btn" id="importWorks">匯入作品</button><hr><label>選擇本系統下載的 JSON 備份<input type="file" id="restoreFile" accept=".json,application/json"></label><button class="btn" id="restoreData">還原（合併；相同學生覆蓋）</button><p id="transferMsg" role="status"></p></details><div id="cloudWorks"></div></div></main>
+  <div class="t-head">
+    <div><div class="eyebrow">老師控制台</div><h2 class="big">作品收集、評分與頒獎</h2></div>
+    <div class="row"><a class="btn go" href="#gallery">打開展覽館</a><a class="btn" href="#">返回學生頁</a></div>
+  </div>
+  <div id="teacherLogin" class="card"><form id="loginForm"><label class="lbl" for="teacherPin">老師密碼</label><input id="teacherPin" type="password" autocomplete="current-password" required style="max-width:300px"><button class="btn primary" type="submit">登入</button></form><p id="loginMsg" role="status"></p></div><div id="teacherContent" hidden><div class="row" style="margin-bottom:16px"><button class="btn sm" id="teacherRefresh">重新整理</button><button class="btn sm" id="retryMarks" hidden>重試儲存</button><button class="btn sm" id="changeStudent">更換這部裝置的學生</button><button class="btn sm" id="logout">登出</button><span id="teacherStatus" role="status"></span></div><div class="t-grid">
+    <section class="card">
+      <h3>收集作品碼</h3>
+      <p class="muted small" style="margin:0">把學生交來的作品碼貼在下面。可以一次貼很多個，連同表格的其他文字一齊貼也可以，系統會自動找出作品碼。同一個班別學號再交，會用最新版本。</p>
+      <label class="small">名單外學生組別 <select id="importGroup"><option>A</option><option>B</option></select></label><textarea id="imp" placeholder="例如由 Google 表格回覆整欄複製，再貼在這裏"></textarea>
+      <div class="row"><button id="bImp" class="btn primary">匯入作品</button><button id="bDemo" class="btn">載入示範作品</button><button id="bDemoClr" class="btn">移除示範作品</button></div>
+      <p class="msg" id="impMsg"></p>
+    </section>
+    <section class="card">
+      <h3>頒獎建議</h3>
+      <div class="awards" id="awards"></div>
+    </section>
+  </div>
+  <section class="card" style="margin-bottom:20px">
+    <div class="row between">
+      <h3 style="margin:0">作品評分 <span class="muted" id="cnt"></span></h3>
+      <div class="row">
+        <select id="fGroup" aria-label="篩選組別"><option value="">全部組別</option><option value="A">A 組</option><option value="B">B 組</option></select><select id="fCls" aria-label="篩選班別"></select>
+        <select id="fType" aria-label="篩選遊戲類型"></select>
+        <select id="fSort" aria-label="排序">
+          <option value="id">按班別學號</option>
+          <option value="total">按總分</option>
+          <option value="votes">按票數</option>
+        </select>
+      </div>
+    </div>
+    <p class="muted small" style="margin:6px 0 0">三項各 1–5 分：創意（遊戲概念和名稱）、美術（角色設計，可參考「原創」標籤和下面的角色來源）、玩法（規則平衡、好不好玩）。按「試玩」親自玩一次。</p>
+    <div id="tlist"></div>
+  </section>
+  <div class="t-grid">
+    <section class="card">
+      <h3>展覽館投票結果</h3>
+      <div id="voteSum"></div>
+      <div class="row" style="margin-top:12px"><button id="bVoteReset" class="btn sm">清除所有投票</button></div>
+    </section>
+    <section class="card">
+      <h3>備份或搬到另一部電腦</h3>
+      <p class="muted small" style="margin:0">作品、分數及個人投票已儲存在雲端。可以產生備份碼保存，或貼上備份碼合併還原。舊版 GDB1 備份可匯入作品和評分，組別投票不會轉為個人票。</p>
+      <textarea id="bk" placeholder="備份碼會在這裏出現；或者把備份碼貼在這裏再按還原"></textarea>
+      <div class="row"><button id="bBkMake" class="btn">產生備份碼</button><button id="bBkCopy" class="btn">複製</button><button id="bBkLoad" class="btn primary">還原（合併）</button></div>
+      <p class="msg" id="bkMsg"></p>
+    </section>
+  </div>
+  <details class="card">
+    <summary>第一堂流程（45 分鐘，每輪約 20 人）</summary>
+    <div class="tbl-wrap"><table class="flow">
+      <tr><th>0–5 分</th><td>開場：大螢幕示範兩三款遊戲，請同學上台玩。說明任務：「揀一款遊戲，設計成你自己的版本，第三堂會在展覽館給大家投票」。</td></tr>
+      <tr><th>5–10 分</th><td>登記班別學號。第 1 步揀遊戲：每款試玩一下再決定。</td></tr>
+      <tr><th>10–19 分</th><td>第 2 步畫角色。示範畫板：揀顏色、畫筆、倒色桶、復原。提醒三個角色要一眼分得出。</td></tr>
+      <tr><th>19–30 分</th><td>第 3 步定規則，邊改邊試玩。巡堂時問：「點樣令遊戲難少少但唔會即死？」</td></tr>
+      <tr><th>30–36 分</th><td>第 4 步改名、寫簡介、揀背景和音效。做得快的同學挑戰 ★ 進階任務：兩格動畫、道具、背景貼紙、背景音樂（計入「挑戰達人獎」）。</td></tr>
+      <tr><th>36–41 分</th><td>互相走位，試玩隔籬同學的遊戲，特別是揀了不同款的同學。</td></tr>
+      <tr><th>41–45 分</th><td>第 5 步複製作品碼並提交，用手機或 iPad 拍下「帶回家玩」QR 碼。老師挑兩三個作品上大螢幕展示，預告第三堂投票。</td></tr>
+    </table></div>
+  </details>
+  <p class="foot"><a href="#">返回學生頁</a></p>
+</div></main>
+
 <!-- ============ 展覽館 ============ -->
-<main id="v-gallery" class="wrap" hidden><section class="g-hero"><div class="eyebrow">IT精英班 · 同學作品</div><h2 class="big">遊戲展覽館</h2><p>試玩同學作品，投給最喜歡的一個。每人一票，可以改投；上傳自己的作品後才可投票。</p></section><div class="row"><a href="#" class="btn">返回工作室</a><button class="btn" id="galleryRefresh">重新整理</button><button class="btn" id="galleryIdentity">選擇／更換學生</button></div><div class="seg" id="gGroups"></div><p id="gState" role="status"></p><div class="ggrid" id="gGrid"></div></main>
+<main id="v-gallery" class="wrap" hidden><section class="g-hero"><div class="eyebrow">IT精英班 · 同學作品</div><h2 class="big">遊戲展覽館</h2><p>試玩同學作品，投給最喜歡的一個。每人一票，可以改投；上傳自己的作品後才可投票。</p></section><div class="row"><a href="#" class="btn">返回工作室</a><button class="btn" id="galleryRefresh">重新整理</button></div><div class="seg" id="gGroups"></div><p id="gState" role="status"></p><div class="ggrid" id="gGrid"></div></main>
 <!-- ============ 帶回家玩（QR 碼打開） ============ -->
 <main id="v-play" class="wrap" hidden>
   <div class="playpage">
@@ -488,7 +548,7 @@ details.card summary{cursor:pointer;font-weight:900}
    留空就不會顯示「打開提交表格」按鈕。 */
 const FORM_URL = '';
 const GROUPS = 10;           // 第三堂組數
-const API_URL = 'https://script.google.com/macros/s/AKfycbxBjtGnVDr3-0G82jLZZJmvIyIfoyHwQ4sOJ5Xj8I7Csqxkk6jAvx7AwTtaXVoYNaqk/exec'; // 貼上第一堂 Apps Script 後台的 https://script.google.com/macros/s/…/exec 網址
+const API_URL = ''; // 貼上第一堂 Apps Script 後台的 https://script.google.com/macros/s/…/exec 網址
 const BOOT = {play: new URLSearchParams(location.search).get('play') || ''};
 const SITE_URL = location.protocol === 'https:' || location.protocol === 'http:' ? location.origin + location.pathname : 'https://edwardyungch.github.io/P6-ITElite/game/';   // 「帶回家玩」QR 碼用的網址
 
@@ -1356,10 +1416,10 @@ function renderWho(){
   if (view === 'play'){ el.innerHTML = ''; return; }
   if (view !== 'student'){ el.innerHTML = view === 'teacher' ? '<span class="chip">老師模式</span>' : '<span class="chip">展覽館</span>'; return; }
   if (!d.cls){ el.innerHTML = ''; return; }
-  el.innerHTML = `<span class="chip">${esc(d.cls)} · ${d.num} 號 · ${esc(rosterName(d.cls, d.num) || d.nick || '')}</span><button class="linkbtn" id="bEditReg">修改</button>`;
-  $('#bEditReg').onclick = openReg;
+  el.innerHTML = `<span class="chip">${esc(d.cls)} · ${d.num} 號 · ${esc(rosterName(d.cls, d.num) || d.nick || '')}</span><button class="linkbtn" id="bEditReg">老師更換學生</button>`;
+  $('#bEditReg').onclick = () => { location.hash = 'teacher'; };
 }
-function openReg(){
+function openReg(){ if (D().cls) { toast('更換學生請先登入老師控制台'); return; }
   const d = D();
   $('#mReg').hidden = false;
   openPicker({ box: $('#regBox'), eyebrow: '歡迎來到遊戲工作室', nick: true, current: d.cls ? { cls: d.cls, num: d.num, nick: d.nick } : null,
@@ -1854,9 +1914,6 @@ $('#uploadWork').onclick=()=>busy($('#uploadWork'),async()=>{
   $('#uploadMsg').textContent=r.updated?'更新成功！展覽館已換成最新作品，原有評分及票數保留。':'上傳成功！現在可以進入作品展試玩及投票。';
 },$('#uploadMsg'));
 $('#manualGroup').onchange=()=>{cloudStudent=null;D().group=$('#manualGroup').value;saveDraft();};
-$('#importWorks').onclick=e=>busy(e.currentTarget,async()=>{const r=await rpc('import',{token:teacherToken,codes:$('#importCodes').value,group:$('#importGroup').value});$('#transferMsg').textContent=`已匯入 ${r.count} 個作品，其中 ${r.updated} 個為更新。`;$('#importCodes').value='';await refreshTeacher();},$('#transferMsg'));
-$('#restoreData').onclick=e=>twoStep(e.currentTarget,()=>busy(e.currentTarget,async()=>{const f=$('#restoreFile').files[0];if(!f)throw Error('請先選擇備份檔');if(f.size>5000000)throw Error('備份檔太大');await rpc('restore',{token:teacherToken,data:JSON.parse(await f.text())});$('#transferMsg').textContent='已還原並合併雲端資料。';await refreshTeacher();},$('#transferMsg')));
-$('#galleryIdentity').onclick=openReg;
 $('#galleryRefresh').onclick=()=>busy($('#galleryRefresh'),refreshGallery,$('#gState'));
 async function refreshGallery() {
   const version=++galleryVersion;
@@ -1878,44 +1935,159 @@ function renderCloudGallery(eligible) {
   $('#gGrid').innerHTML=works.length?works.map(w=>{const d=decode(w.code);if(!d)return '';return `<button class="gcard ${cloudVote===w.id?'voted':''}" data-id="${esc(w.id)}"><div class="art" style="background:#e9edf5"><img alt="角色" src="${spriteURL(d.sprites[0])}"><span class="tag">${TYPES[d.type].name}</span></div><div class="meta"><b>${esc(d.title)}</b><span>${esc(d.nick||rosterName(d.cls,d.num)||d.cls+' '+d.num+' 號')}</span>${cloudVote===w.id?'<br><span class="vtag">你投了這個作品</span>':''}</div></button>`;}).join(''):'<p class="empty">這組尚未有作品。</p>';
   $('#gGrid').querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>openPlayer(b.dataset.id,true,eligible));
 }
+let T={games:{},scores:{},votes:{}};
+const totalOf=id=>{const s=T.scores[id]||{};return (s.c||0)+(s.a||0)+(s.p||0);};
+const author=d=>`${d.cls} · ${d.num} 號 · ${rosterName(d.cls,d.num)||'名單外'}${d.nick?'（'+d.nick+'）':''}`;
+const authorCloud=w=>{const d=decode(w.code);return d?author(d):w.id;};
+const voteCounts=()=>{const c={};Object.values(T.votes).forEach(id=>c[id]=(c[id]||0)+1);return c;};
+function voterLabel(id){const parts=id.split('-');return parts[0]+' '+parts[1]+' 號'+(rosterName(parts[0],+parts[1])?' · '+rosterName(parts[0],+parts[1]):'');}
+const markJobs=new Map(),noteTimers=new Map(),failedMarks=new Set();
+function markStatus(){
+  $('#retryMarks').hidden=!failedMarks.size;
+  $('#teacherStatus').textContent=failedMarks.size?'有評分／備註尚未儲存，請按「重試儲存」。':markJobs.size||noteTimers.size?'正在儲存…':'已儲存至雲端';
+}
+function queueMark(id){
+  if(noteTimers.has(id)){clearTimeout(noteTimers.get(id));noteTimers.delete(id);}
+  const token=teacherToken,score={...T.scores[id]},previous=markJobs.get(id)||Promise.resolve();
+  const job=previous.catch(()=>{}).then(()=>rpc('mark',{token,id,score})).then(()=>{failedMarks.delete(id);}).catch(e=>{failedMarks.add(id);toast(e.message);}).finally(()=>{if(markJobs.get(id)===job)markJobs.delete(id);markStatus();});
+  markJobs.set(id,job);markStatus();return job;
+}
+function scheduleNote(id){if(noteTimers.has(id))clearTimeout(noteTimers.get(id));noteTimers.set(id,setTimeout(()=>queueMark(id),600));markStatus();}
+async function settleMarks(){for(const id of [...noteTimers.keys()])queueMark(id);await Promise.all([...markJobs.values()]);if(failedMarks.size)throw Error('尚有評分未儲存，請先重試儲存。');}
+$('#retryMarks').onclick=e=>busy(e.currentTarget,async()=>{for(const id of [...failedMarks])queueMark(id);await settleMarks();},$('#teacherStatus'));
+window.addEventListener('beforeunload',e=>{if(markJobs.size||noteTimers.size||failedMarks.size){e.preventDefault();e.returnValue='';}});
 $('#loginForm').onsubmit=e=>{e.preventDefault();busy(e.submitter||$('#loginForm button'),async()=>{
-  $('#loginMsg').textContent='驗證中…';const r=await rpc('login',{pin:$('#teacherPin').value});$('#teacherPin').value='';teacherToken=r.token;$('#loginMsg').textContent='';await refreshTeacher();
+  $('#loginMsg').textContent='驗證中…';const r=await rpc('login',{pin:$('#teacherPin').value});$('#teacherPin').value='';teacherToken=r.token;$('#loginMsg').textContent='';
+  for(const id of [...failedMarks])queueMark(id);await refreshTeacher();
 },$('#loginMsg'));};
-$('#logout').onclick=async()=>{const token=teacherToken;teacherToken='';teacherWorks=[];$('#cloudWorks').innerHTML='';$('#teacherContent').hidden=true;$('#teacherLogin').hidden=false;try{await rpc('logout',{token});}catch(e){} };
-$('#teacherRefresh').onclick=()=>busy($('#teacherRefresh'),refreshTeacher,$('#teacherMsg'));
-$('#teacherGroup').onchange=renderTeacher;
+async function logoutTeacher(){
+  try{await settleMarks();}catch(e){location.hash='teacher';toast(e.message);return;}
+  const token=teacherToken;teacherToken='';teacherWorks=[];T={games:{},scores:{},votes:{}};$('#tlist').innerHTML='';$('#teacherContent').hidden=true;$('#teacherLogin').hidden=false;
+  try{await rpc('logout',{token});}catch(e){}
+}
+$('#logout').onclick=logoutTeacher;
+$('#teacherRefresh').onclick=e=>busy(e.currentTarget,refreshTeacher,$('#teacherStatus'));
+$('#changeStudent').onclick=e=>busy(e.currentTarget,async()=>{
+  await settleMarks();await rpc('teacher',{token:teacherToken});
+  flushDraft();draft=normDraft(null);flushDraft();cloudStudent=null;cloudVote='';galleryGroup='';
+  undo.length=0;curSlot=0;curFrame=0;helper='';renderHelper();renderTypes();buildRules();syncRules();renderPower();syncLook();renderSeq();renderSlots();renderFrames();drawEditor();renderHint();updateStats();renderSubmit();G1.reset();
+  await logoutTeacher();location.hash='';
+},$('#teacherStatus'));
 async function refreshTeacher(){
   if(!teacherToken){$('#teacherLogin').hidden=false;$('#teacherContent').hidden=true;return;}
-  const token=teacherToken,r=await rpc('teacher',{token});if(token!==teacherToken)return;
-  teacherWorks=r.works;$('#teacherLogin').hidden=true;$('#teacherContent').hidden=false;renderTeacher();
+  await settleMarks();const token=teacherToken,r=await rpc('teacher',{token});if(token!==teacherToken)return;
+  teacherWorks=r.works;T={games:{},scores:{},votes:{}};
+  for(const w of r.works){const d=decode(w.code);if(d){T.games[w.id]={d,code:w.code,demo:!!w.demo,group:w.group};T.scores[w.id]=w.score||{};}}
+  for(const v of r.votes||[])T.votes[v.id]=v.target;
+  $('#teacherLogin').hidden=true;$('#teacherContent').hidden=false;renderTeacher();markStatus();
 }
+$('#fCls').onchange=renderList;$('#fSort').onchange=renderList;$('#fType').onchange=renderList;$('#fGroup').onchange=renderList;
 function renderTeacher(){
-  const group=$('#teacherGroup').value, works=teacherWorks.filter(w=>!group||w.group===group);
-  const total=w=>(w.score.c||0)+(w.score.a||0)+(w.score.p||0);
-  $('#teacherMsg').textContent=`${works.length} 個作品（雲端資料）`;
-  const top=teacherWorks.slice().sort((a,b)=>total(b)-total(a)).filter(w=>total(w)>0).slice(0,3);
-  const popular=teacherWorks.slice().sort((a,b)=>b.votes-a.votes).filter(w=>w.votes>0).slice(0,3);
-  const line=w=>`${esc(w.title)}（${esc(w.id)}）`;
-  $('#cloudAwards').innerHTML=`<p><b>最佳遊戲：</b>${top.map(w=>line(w)+' '+total(w)+'分').join('、')||'未評分'}</p><p><b>人氣作品：</b>${popular.map(w=>line(w)+' '+w.votes+'票').join('、')||'未有投票'}</p>`;
-  $('#cloudWorks').innerHTML=works.map(w=>{const d=decode(w.code);return `<article class="card" style="margin-top:16px" data-id="${esc(w.id)}"><h3>${esc(w.title)} <span class="tag">${w.group}組</span></h3><p>${esc(authorCloud(w))} · ${total(w)}/15 分 · ${w.votes} 票${d?' · 原創：'+originality(d).label:''}</p><div class="row">${[['c','創意'],['a','美術'],['p','玩法']].map(([k,n])=>`<label>${n} <select data-score="${k}">${[0,1,2,3,4,5].map(v=>`<option value="${v}" ${v===(w.score[k]||0)?'selected':''}>${v===0?'未評':v+'分'}</option>`).join('')}</select></label>`).join('')}</div><label class="field">老師備註<input data-note maxlength="300" value="${esc(w.score.note||'')}"></label><div class="row" style="margin-top:12px"><button class="btn primary" data-save>儲存評分</button><button class="btn go" data-play>試玩</button><button class="btn" data-delete>刪除作品</button></div><p data-msg role="status"></p></article>`;}).join('')||'<p class="empty">尚未有作品。</p>';
-  $('#cloudWorks').querySelectorAll('article').forEach(row=>{
-    const id=row.dataset.id,msg=row.querySelector('[data-msg]');
-    row.querySelector('[data-save]').onclick=e=>busy(e.currentTarget,async()=>{const score={note:row.querySelector('[data-note]').value};row.querySelectorAll('[data-score]').forEach(s=>score[s.dataset.score]=+s.value);await rpc('mark',{token:teacherToken,id,score});msg.textContent='已儲存';await refreshTeacher();},msg);
-    row.querySelector('[data-play]').onclick=()=>openPlayer(id,false,false);
-    row.querySelector('[data-delete]').onclick=e=>twoStep(e.currentTarget,()=>busy(e.currentTarget,async()=>{await rpc('delete',{token:teacherToken,id});await refreshTeacher();},msg));
+  const ids = Object.keys(T.games);
+  const classes = [...new Set(ids.map(id => T.games[id].d.cls))].sort();
+  const cur = $('#fCls').value, curT = $('#fType').value;
+  $('#fCls').innerHTML = '<option value="">全部班別</option>' + classes.map(c => `<option${c === cur ? ' selected' : ''}>${esc(c)}</option>`).join('');
+  $('#fType').innerHTML = '<option value="">全部遊戲類型</option>' + TYPES.map((t, i) => `<option value="${i}"${String(i) === curT ? ' selected' : ''}>${t.name}</option>`).join('');
+  renderList(); renderAwards(); renderVotes();
+}
+function renderList(){
+  const vc = voteCounts(); const group = $('#fGroup').value; const f = $('#fCls').value, ft = $('#fType').value, sort = $('#fSort').value;
+  let ids = Object.keys(T.games).filter(id => (!group || T.games[id].group === group) && (!f || T.games[id].d.cls === f) && (ft === '' || String(T.games[id].d.type) === ft));
+  ids.sort((a, b) => {
+    if (sort === 'total') return totalOf(b) - totalOf(a);
+    if (sort === 'votes') return (vc[b] || 0) - (vc[a] || 0);
+    const da = T.games[a].d, db = T.games[b].d; return da.cls === db.cls ? da.num - db.num : (da.cls < db.cls ? -1 : 1);
+  });
+  $('#cnt').textContent = `（${ids.length} 個）`;
+  if (!ids.length){ $('#tlist').innerHTML = '<div class="empty" style="margin-top:14px">未有作品。把學生交來的作品碼貼在「收集作品碼」，或者先載入示範作品看看效果。</div>'; return; }
+  const CR = [['c','創意'],['a','美術'],['p','玩法']];
+  $('#tlist').innerHTML = ids.map(id => {
+    const { d, demo } = T.games[id]; const s = T.scores[id] || {};
+    return `<article class="trow" data-id="${esc(id)}">
+      <div class="thumbs">${d.sprites.map(sp => `<img alt="" src="${spriteURL(sp, 3)}">`).join('')}</div>
+      <div class="tinfo"><b>${esc(d.title || '未命名')}</b><span class="orig ${{ '高':'h', '中':'m', '低':'l' }[originality(d).label]}" title="按角色來源和改動格數估計，只供參考">原創：${originality(d).label}</span><span><span class="tag">${TYPES[d.type].name}</span> ${esc(author(d))}${demo ? '<span class="demo">示範</span>' : ''}</span>${starsOf(d) ? `<br><span class="stars small">${'★'.repeat(starsOf(d))} 進階挑戰 ${starsOf(d)} 項</span>` : ''}</div>
+      <div class="tscore">${CR.map(([k, n]) => `<div class="crit">${n}<div class="dots">${[1,2,3,4,5].map(v => `<button data-k="${k}" data-v="${v}" class="${(s[k] || 0) >= v ? 'on' : ''}" aria-label="${n} ${v} 分">${v}</button>`).join('')}</div></div>`).join('')}</div>
+      <div class="ttotal"><b>${totalOf(id)}</b><small>/ 15 · ${vc[id] || 0} 票</small></div>
+      <div class="row"><button class="btn sm go" data-act="play">試玩</button><button class="btn sm" data-act="del">刪除</button></div>
+      <div class="tsrc">${(() => { const o = originality(d), names = [...TYPES[d.type].slots.map(x => x[0]), '道具']; return o.idx.map(i => `<b>${names[i]}</b>：${esc(originText(o.info[i]))}`).join('　'); })()}</div>
+      <div class="tnote"><input data-act="note" maxlength="300" placeholder="備註（例如：上台示範、表現投入）" value="${esc(s.note || '')}" aria-label="備註"></div>
+    </article>`;
+  }).join('');
+  document.querySelectorAll('.trow').forEach(row => {
+    const id = row.dataset.id;
+    row.querySelectorAll('.dots button').forEach(b => b.onclick = () => {
+      const s = T.scores[id] = T.scores[id] || {}; const v = +b.dataset.v; s[b.dataset.k] = s[b.dataset.k] === v ? 0 : v;
+      queueMark(id); renderList(); renderAwards();
+    });
+    row.querySelector('[data-act=play]').onclick = () => openPlayer(id, false);
+    row.querySelector('[data-act=del]').onclick = e => twoStep(e.currentTarget, () => busy(e.currentTarget, async () => { await settleMarks(); await rpc('delete', {token:teacherToken,id}); await refreshTeacher(); }, $('#teacherStatus')));
+    row.querySelector('[data-act=note]').oninput = e => { const s = T.scores[id] = T.scores[id] || {}; s.note = e.target.value.slice(0,300); scheduleNote(id); };
   });
 }
-function authorCloud(w){const d=decode(w.code);return w.id+' · '+(d?(rosterName(d.cls,d.num)||d.nick):'');}
-$('#resetVotes').onclick=e=>twoStep(e.currentTarget,()=>busy(e.currentTarget,async()=>{await rpc('resetVotes',{token:teacherToken});await refreshTeacher();},$('#teacherMsg')));
-$('#exportData').onclick=e=>busy(e.currentTarget,async()=>{const r=await rpc('backup',{token:teacherToken}),url=URL.createObjectURL(new Blob([JSON.stringify(r.data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='IT精英班遊戲備份.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);},$('#teacherMsg'));
+function renderAwards(){
+  const vc = voteCounts(); const ids = Object.keys(T.games);
+  const line = (id, extra) => { const d = T.games[id].d; return `<li>《${esc(d.title)}》${esc(author(d))} <span class="muted">${extra}</span></li>`; };
+  const top = (arr, fmt) => arr.length ? '<ol>' + arr.slice(0, 3).map(id => line(id, fmt(id))).join('') + '</ol>' : '<p class="muted small" style="margin:0">未有資料</p>';
+  const scored = ids.filter(id => totalOf(id) > 0).sort((a, b) => totalOf(b) - totalOf(a));
+  const art = ids.filter(id => (T.scores[id] || {}).a).sort((a, b) => (T.scores[b].a - T.scores[a].a) || (totalOf(b) - totalOf(a)));
+  const pop = ids.filter(id => vc[id]).sort((a, b) => vc[b] - vc[a]);
+  const star = ids.filter(id => starsOf(T.games[id].d)).sort((a, b) => (starsOf(T.games[b].d) - starsOf(T.games[a].d)) || (totalOf(b) - totalOf(a)));
+  $('#awards').innerHTML = `
+    <div class="aw"><h4>最佳遊戲設計（總分）</h4>${top(scored, id => totalOf(id) + ' 分')}</div>
+    <div class="aw"><h4>最佳美術設計（美術分）</h4>${top(art, id => T.scores[id].a + ' 分')}</div>
+    <div class="aw"><h4>人氣遊戲獎（展覽館票數）</h4>${top(pop, id => vc[id] + ' 票')}</div>
+    <div class="aw"><h4>挑戰達人獎（進階挑戰，同數比總分）</h4>${top(star, id => '★ ' + starsOf(T.games[id].d))}</div>`;
+}
+function renderVotes(){
+  const entries = Object.entries(T.votes).sort((a, b) => a[0].localeCompare(b[0]));
+  $('#voteSum').innerHTML = entries.length
+    ? '<ul style="margin:0;padding-left:20px;font-size:14px">' + entries.map(([g, id]) => `<li>${esc(voterLabel(g))} → ${T.games[id] ? '《' + esc(T.games[id].d.title) + '》' : '（作品已刪除）'}</li>`).join('') + '</ul>'
+    : '<p class="muted small" style="margin:0">未有投票。學生上傳作品後可在展覽館投票，每位學生一票。</p>';
+}
+
+$('#bImp').onclick=e=>busy(e.currentTarget,async()=>{
+  await settleMarks();const r=await rpc('import',{token:teacherToken,codes:$('#imp').value,group:$('#importGroup').value});await refreshTeacher();
+  $('#impMsg').textContent=`新增 ${r.new} 個，更新 ${r.updated} 個，重複 ${r.same} 個${r.bad?'，有 '+r.bad+' 個作品碼不完整':''}。`;if(!r.bad)$('#imp').value='';
+},$('#impMsg'));
+$('#bDemo').onclick = e => busy(e.currentTarget, async () => { const codes=[];
+  const rc = (sp, map) => sp.map(v => map[v] ?? v);
+  const mk = (num, type, o, maps) => { const d = Object.assign(defaultDesign(type), { cls:'示範', num, nick:'示範' }, o); d.sprites = d.sprites.map((s, i) => rc(s, maps[i] || {})); return d; };
+  const flap = SP.bird.map((v, i) => { const y = (i / 12) | 0; return (y >= 5 && y <= 7 && v === 2) ? 0 : v; });
+  [
+    mk(1, 1, { title:'粉紅小鳥', desc:'點一下就飛，穿過水管收金幣！', bg:3, music:[1,4,2,8,1,16,4,0], stickers:[{s:2,big:false,x:20,y:110},{s:2,big:false,x:70,y:112},{s:3,big:true,x:75,y:20}] }, [{6:11}, {7:9}, {}]),
+    mk(2, 3, { title:'打地鼠大賽', desc:'30 秒內打最多地鼠，炸彈不要打！', goal:0, pfx:2, pfreq:5 }, [{}, {}, {}, {11:9}]),
+    mk(3, 4, { title:'太空救援', desc:'外星人越來越快，你可以撐多久？', ramp:2, lives:2, sound:2, pfx:1, pfreq:4 }, [{9:10, 14:6}, {10:7}, {6:14}, {11:8}])
+  ].forEach((d, k) => { if (k === 0) d.frames2[0] = rc(flap, {6:11}); codes.push(encode(d)); });
+  await settleMarks(); await rpc('import',{token:teacherToken,codes:codes.join('\n'),group:'A',demo:true}); await refreshTeacher(); $('#impMsg').textContent = '已載入 3 個示範作品（標示「示範」），正式使用前可以移除。';
+}, $('#impMsg'));
+
+$('#bDemoClr').onclick=e=>busy(e.currentTarget,async()=>{await settleMarks();await rpc('clearDemos',{token:teacherToken});await refreshTeacher();$('#impMsg').textContent='已移除示範作品。';},$('#impMsg'));
+$('#bVoteReset').onclick=e=>twoStep(e.currentTarget,()=>busy(e.currentTarget,async()=>{await settleMarks();await rpc('resetVotes',{token:teacherToken});await refreshTeacher();toast('已清除所有投票');},$('#teacherStatus')));
+$('#bBkMake').onclick=e=>busy(e.currentTarget,async()=>{
+  await settleMarks();const r=await rpc('backup',{token:teacherToken});$('#bk').value='GDB2'+b64url(new TextEncoder().encode(JSON.stringify(r.data)));$('#bkMsg').textContent=`已產生備份碼（${r.data.works.length} 個作品），包含老師分數和個人投票。請複製保存。`;
+},$('#bkMsg'));
+$('#bBkCopy').onclick=()=>{const fallback=()=>{$('#bk').focus();$('#bk').select();toast('已選取，請按 Ctrl + C');};try{navigator.clipboard.writeText($('#bk').value).then(()=>toast('已複製備份碼'),fallback);}catch(e){fallback();}};
+function parseTeacherBackup(text){
+  const m=text.trim().match(/^GDB([12])([A-Za-z0-9_-]+)$/);let data;
+  if(m){data=JSON.parse(new TextDecoder().decode(fromB64url(m[2])));if(m[1]==='1'){
+    if(!data.games||typeof data.games!=='object')throw Error('舊備份格式不正確');
+    const works=Object.entries(data.games).map(([id,g])=>{const d=decode(g.code);if(!d)throw Error('備份包含無效作品碼');return {id,code:g.code,group:groupOf(d)||$('#importGroup').value,score:(data.scores||{})[id]||{},demo:!!g.demo};});
+    return {data:{format:'ITGAME1',works,votes:[]},legacy:true};
+  }}else data=JSON.parse(text);
+  if(data.format!=='ITGAME1')throw Error('請貼上 GDB2／GDB1 備份碼或之前下載的 JSON 備份');return {data,legacy:false};
+}
+$('#bBkLoad').onclick=e=>busy(e.currentTarget,async()=>{
+  await settleMarks();const b=parseTeacherBackup($('#bk').value);await rpc('restore',{token:teacherToken,data:b.data});await refreshTeacher();$('#bkMsg').textContent=b.legacy?'已合併還原作品及老師評分；舊版組別票不會轉為個人票。':'已合併還原作品、老師評分及個人投票。';
+},$('#bkMsg'));
+
 let modalD=null,modalId=null,modalVote=false;
 const GM=Game($('#cvM'),()=>modalD||defaultDesign(0));
 function openPlayer(id,vote,eligible){
   const w=(vote?cloudWorks:teacherWorks).find(w=>w.id===id);if(!w)return;
   modalD=decode(w.code);if(!modalD){toast('作品碼無效');return;}modalId=id;modalVote=vote;
   const t=TYPES[modalD.type];$('#mTitle').textContent=modalD.title;$('#mBy').textContent=authorCloud(w);$('#mDesc').textContent=modalD.desc;$('#mCtl').textContent=t.key+'；'+t.touch;$('#mMsg').textContent='';
-  $('#mVote').hidden=!vote;$('#mVote').disabled=!eligible||id===D().cls+'-'+D().num||cloudVote===id;
-  $('#mVote').textContent=id===D().cls+'-'+D().num?'不能投自己的作品':cloudVote===id?'已投給此作品':eligible?'投票給這個遊戲':'上傳作品後才可投票';
+  $('#mVote').hidden=!vote;$('#mVote').disabled=!!w.demo||!eligible||id===D().cls+'-'+D().num||cloudVote===id;
+  $('#mVote').textContent=w.demo?'示範作品不接受投票':id===D().cls+'-'+D().num?'不能投自己的作品':cloudVote===id?'已投給此作品':eligible?'投票給這個遊戲':'上傳作品後才可投票';
   $('#mQRbtn').hidden=false;$('#mQR').hidden=true;$('#mQRbtn').onclick=()=>{const box=$('#mQR');box.hidden=!box.hidden;if(!box.hidden)makeQR($('#qrM'),SITE_URL+'?play='+encodeURIComponent(w.code));};
   GM.reset();activeGame=GM;$('#mPlay').hidden=false;
 }
@@ -1927,7 +2099,7 @@ let playD=null;const GP=Game($('#cvP'),()=>playD||defaultDesign(0));$('#pStart')
 function showPlay(code){playD=decode(code);$('#pStart').disabled=!playD;if(!playD){$('#pTitle').textContent='連結不完整';$('#pErr').textContent='請重新掃描 QR 碼。';return;}const t=TYPES[playD.type];$('#pTitle').textContent=playD.title;$('#pBy').textContent=playD.nick||playD.cls+' 班同學';$('#pDesc').textContent=playD.desc;$('#pCtl').textContent=t.key+'；'+t.touch;GP.reset();activeGame=GP;}
 function route(){
   const previous=view,h=location.hash.slice(1)||BOOT.play||'';view=h==='teacher'?'teacher':h==='gallery'?'gallery':/^G\d/.test(h)?'play':'student';++routeVersion;
-  if(previous==='teacher'&&view!=='teacher'&&teacherToken){const token=teacherToken;teacherToken='';teacherWorks=[];$('#cloudWorks').innerHTML='';$('#teacherContent').hidden=true;rpc('logout',{token}).catch(()=>{});}
+  if(previous==='teacher'&&view!=='teacher'&&teacherToken){ logoutTeacher(); }
   ['student','teacher','gallery','play'].forEach(v=>$('#v-'+v).hidden=v!==view);closePlayer();
   if(view==='student'&&!D().cls)openReg();else $('#mReg').hidden=true;
   if(view==='teacher')refreshTeacher().catch(e=>$('#loginMsg').textContent=e.message);
