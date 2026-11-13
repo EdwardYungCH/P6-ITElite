@@ -254,7 +254,7 @@ function twoStep(btn, fn){
 
 /* ===== 後台 ===== */
 async function apiGet(params){
-  const r = await fetch(API_URL + '?' + new URLSearchParams(params), { redirect: 'follow' });
+  const r = await fetch(API_URL + '?' + new URLSearchParams({...params,_ts:Date.now()}), { redirect: 'follow' });
   return r.json();
 }
 async function apiPost(obj){
@@ -529,7 +529,7 @@ function showImage(src, title, by, work){
   $('#mView').hidden = false;
   if (work && API_URL){
     $('#vNote').textContent = '載入原圖中……';
-    apiGet({ action:'file', id: work.id, kind:'jpg' }).then(r => { if (viewing !== work) return; if (r.ok){ $('#vImg').src = 'data:image/jpeg;base64,' + r.b64; $('#vNote').textContent = work.hasSgl ? '下載 3D 檔後，在 SculptGL 按「檔案」→ 匯入，就可以打開。' : ''; } else $('#vNote').textContent = ''; }).catch(() => { $('#vNote').textContent = ''; });
+    apiGet({ action:'file', id: work.id, kind:'jpg' }).then(r => { if (viewing !== work) return; if (r.ok){ $('#vImg').src = 'data:image/jpeg;base64,' + r.b64; $('#vNote').textContent = work.hasSgl ? '下載 3D 檔後，在 SculptGL 按「檔案」→ 匯入，就可以打開。' : ''; } else $('#vNote').textContent = r.error || '原圖已移除或無法讀取，現在顯示的是縮圖。'; }).catch(() => { $('#vNote').textContent = ''; });
   }
 }
 $('#vClose').onclick = () => { $('#mView').hidden = true; viewing = null; };
@@ -543,14 +543,14 @@ $('#vSgl').onclick = async () => {
 };
 
 /* ===== 展覽館 ===== */
-let works = [], gTimer = null;
+let works = [], gTimer = null; const deletedIds = new Set();
 const workBy = w => `${w.cls} 班 ${w.num} 號`;
 async function loadGallery(){
   if (!API_URL){ $('#gGrid').innerHTML = '<div class="empty">展覽館未設定。請老師先完成 Google Apps Script 設定。</div>'; return; }
   try {
     const r = await apiGet({ action:'list' });
     if (!r.ok) throw new Error(r.error);
-    works = r.works.sort((a, b) => b.time - a.time); renderGallery();
+    works = r.works.filter(w=>!deletedIds.has(w.id)).sort((a, b) => b.time - a.time); renderGallery();
   } catch(err){ $('#gGrid').innerHTML = '<div class="empty">讀取作品失敗，請按「重新整理」再試。</div>'; }
 }
 function renderGallery(){
@@ -597,9 +597,9 @@ function renderTeacher(){
   $('#tRefresh').hidden = false;
   body.innerHTML = `<div class="stats" id="tStats"></div>
     <div class="filters"><select class="txt" id="tCls" aria-label="班別"></select>
-      <select class="txt" id="tShow" aria-label="顯示"><option value="">全部作品</option><option value="todo">未評分</option><option value="star">★ 精選</option></select>
+      <select class="txt" id="tShow" aria-label="顯示"><option value="">全部作品</option><option value="todo">未評分</option><option value="star">★ 精選</option><option value="missing">檔案缺失（清理記錄）</option></select>
       <select class="txt" id="tSort" aria-label="排序"><option value="num">按班別班號</option><option value="time">按上載時間</option></select></div>
-    <div class="grid" id="tGrid"><div class="empty">載入中……</div></div>`;
+    <p class="msg" id="tActionMsg" role="status"></p><div class="grid" id="tGrid"><div class="empty">載入中……</div></div>`;
   ['tCls','tShow','tSort'].forEach(id => $('#' + id).onchange = renderTList);
   loadTeacher();
 }
@@ -607,16 +607,16 @@ async function loadTeacher(){
   try {
     const r = await apiGet({ action:'tlist', pin });
     if (!r.ok){ if (r.error === 'pin'){ pin = ''; SS.set('sg-pin', ''); renderTeacher(); return; } throw new Error(r.error); }
-    tWorks = r.works; renderTList();
+    tWorks = r.works.filter(w=>!deletedIds.has(w.id)); renderTList();
   } catch(err){ const g = $('#tGrid'); if (g) g.innerHTML = '<div class="empty">讀取失敗，請按「重新整理」。</div>'; }
 }
 function renderTList(){
   const cur = $('#tCls').value, classes = [...new Set(tWorks.map(w => String(w.cls)))].sort();
   $('#tCls').innerHTML = '<option value="">全部班別</option>' + classes.map(c => `<option${c === cur ? ' selected' : ''}>${esc(c)}</option>`).join('');
   const show = $('#tShow').value, sort = $('#tSort').value;
-  let list = tWorks.filter(w => (!$('#tCls').value || String(w.cls) === $('#tCls').value) && (show !== 'todo' || !w.level) && (show !== 'star' || w.star));
+  let list = tWorks.filter(w => (show === 'missing' ? (w.missingJpg || w.missingSgl) : !w.missingJpg) && (!$('#tCls').value || String(w.cls) === $('#tCls').value) && (show !== 'todo' || !w.level) && (show !== 'star' || w.star));
   list.sort((a, b) => sort === 'time' ? b.time - a.time : (String(a.cls) === String(b.cls) ? a.num - b.num : (String(a.cls) < String(b.cls) ? -1 : 1)));
-  const n = tWorks.length, marked = tWorks.filter(w => w.level).length, stars = tWorks.filter(w => w.star).length;
+  const visible=tWorks.filter(w=>!w.missingJpg); const n = visible.length, marked = visible.filter(w => w.level).length, stars = visible.filter(w => w.star).length;
   $('#tStats').innerHTML = `<div>已上載<b>${n}</b></div><div>已評分<b>${marked}</b></div><div>★ 精選<b>${stars}</b></div>`;
   $('#tGrid').innerHTML = list.length ? list.map(w => `<article class="card tcard" data-id="${esc(w.id)}">
       <div class="pic" style="background-image:url('${w.thumb}')" role="button" tabindex="0" aria-label="看大圖"></div>
@@ -624,7 +624,7 @@ function renderTList(){
         <div><b style="font-family:var(--f-display);font-size:17px">${esc(w.title || '未命名')}</b><div class="who">${esc(w.cls)} 班 ${w.num} 號 · ${esc(w.name)}${w.hasSgl ? '' : ' · <span style="color:var(--warn)">沒有 3D 檔</span>'}</div></div>
         <div class="lvls">${LEVELS.map(([l, c]) => `<button type="button" class="${c}" data-lv="${l}" aria-pressed="${w.level === l}">${l}</button>`).join('')}</div>
         <div class="row"><button type="button" class="starbtn" aria-pressed="${!!w.star}">★ 精選</button><span class="muted small">頒獎候選</span></div>
-        <input class="txt" data-cm placeholder="評語（選填）" value="${esc(w.comment || '')}" maxlength="100" aria-label="評語">
+        ${w.missingJpg ? '<p class="msg bad">原圖已刪除或無法讀取，展覽館已隱藏此作品。可按刪除清理記錄及剩餘檔案。</p>' : w.missingSgl ? '<p class="msg bad">3D 檔已刪除或無法讀取，已關閉下載。</p>' : ''}<input class="txt" data-cm placeholder="評語（選填）" value="${esc(w.comment || '')}" maxlength="100" aria-label="評語"><div class="row" style="margin-top:10px"><button type="button" class="btn" data-delete>刪除作品</button><span class="muted small">再按一次確認；檔案移至 Drive 垃圾桶</span></div><p class="msg bad" data-delete-msg role="status"></p>
       </div></article>`).join('') : '<div class="empty">沒有符合的作品。</div>';
   document.querySelectorAll('.tcard').forEach(card => {
     const w = tWorks.find(x => x.id === card.dataset.id);
@@ -633,6 +633,7 @@ function renderTList(){
     pic.onkeydown = e => { if (e.key === 'Enter') pic.onclick(); };
     card.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => { const v = w.level === b.dataset.lv ? '' : b.dataset.lv; saveMark(w, { level: v }); });
     card.querySelector('.starbtn').onclick = () => saveMark(w, { star: !w.star });
+    card.querySelector('[data-delete]').onclick = e => { const btn=e.currentTarget; twoStep(btn, () => deleteUploadedWork(w,btn,card)); };
     const cm = card.querySelector('[data-cm]'); cm.onchange = () => saveMark(w, { comment: cm.value }, true);
   });
 }
@@ -642,6 +643,29 @@ async function saveMark(w, patch, quiet){
   try { const r = await apiPost(Object.assign({ action:'mark', pin, id: w.id }, patch)); if (!r.ok) throw new Error(r.error); toast('已儲存'); }
   catch(err){ Object.assign(w, old); renderTList(); toast('儲存失敗，請再試'); }
 }
+async function deleteUploadedWork(w, btn, card) {
+  if (btn.disabled) return;
+  const controls=[...card.querySelectorAll('button,input')];
+  controls.forEach(el=>el.disabled=true);btn.textContent='刪除中……';
+  const msg=card.querySelector('[data-delete-msg]');msg.textContent='';
+  try {
+    const r=await apiPost({action:'delete',pin,id:w.id});
+    if (!r.ok) {
+      if (r.error==='pin') {pin='';SS.set('sg-pin','');renderTeacher();throw new Error('登入已失效，請重新登入。');}
+      throw new Error(r.error==='unknown action'?'請先將新版第二堂後台部署為「新版本」，才能刪除作品。':r.error||'刪除失敗');
+    }
+    deletedIds.add(w.id);tWorks=tWorks.filter(x=>x.id!==w.id);works=works.filter(x=>x.id!==w.id);
+    if(viewing&&viewing.id===w.id){viewing=null;$('#mView').hidden=true;}
+    if($('#tGrid'))renderTList();renderGallery();
+    const status=$('#tActionMsg');if(status)status.textContent=r.warning?'作品已從網站移除。'+r.warning:'作品已刪除；相關檔案已移到 Drive 垃圾桶。';
+    toast(r.warning?'作品已移除，請查看檔案處理提示。':'已刪除作品');
+  } catch(e) {
+    msg.textContent=e.message||'未能確認刪除結果，請重新整理後檢查。';toast(msg.textContent);
+  } finally {
+    controls.forEach(el=>el.disabled=false);btn.textContent='刪除作品';
+  }
+}
+
 $('#tRefresh').onclick = loadTeacher;
 
 /* ===== 切換頁面 ===== */
